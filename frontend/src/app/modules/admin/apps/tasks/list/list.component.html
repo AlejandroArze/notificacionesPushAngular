@@ -6,7 +6,7 @@
 
         <mat-drawer-content>
             <div class="p-8">
-                <div class="grid grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- Columna de Configuración -->
                     <div class="bg-white dark:bg-[#1e293b] rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
                         <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">
@@ -78,7 +78,7 @@
                             </div>
 
                             <!-- Filtros en grid -->
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <!-- Roles -->
                                 <div>
                                     <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -95,7 +95,7 @@
                                 </div>
 
                                 <!-- Unidades -->
-                    <div>
+                                <div>
                                     <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                                         Unidades
                                     </label>
@@ -111,16 +111,20 @@
                             </div>
 
                             <!-- Botones de acción -->
-                            <div class="flex justify-end gap-3 mt-8">
+                            <div class="flex flex-col sm:flex-row justify-end gap-3 mt-8">
                                 <button 
                                     mat-stroked-button
-                                    class="px-6 py-2 text-white bg-gray-500 hover:bg-gray-600 rounded-lg transition-colors flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95"
+                                    class="px-6 py-2 text-white bg-gray-500 hover:bg-gray-600 rounded-lg transition-colors 
+                                           flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95
+                                           w-full sm:w-auto"
                                     (click)="cancelarNotificacion()">
                                     <span class="text-white">Cancelar</span>
                                 </button>
                                 <button 
                                     mat-raised-button
-                                    class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95"
+                                    class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors 
+                                           disabled:opacity-50 flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95
+                                           w-full sm:w-auto"
                                     (click)="previsualizarDestinatarios()"
                                     [disabled]="!validarFormularioNotificacion()">
                                     <span class="text-white">Enviar Notificación</span>
@@ -144,42 +148,32 @@
                             </p>
 
                             <!-- Botones de vista -->
-                            <div class="flex justify-center gap-3 mb-6">
-                        <button
+                            <div class="flex flex-col sm:flex-row justify-center gap-3 mb-6">
+                                <button
                                     (click)="cambiarVistaPrevia('inicial')"
-                                    class="px-6 py-2 rounded-lg transition-all cursor-pointer 
-                                           bg-blue-100 text-white 
-                                           dark:bg-blue-900 dark:text-white
-                                           hover:bg-blue-500
-                                           border border-blue-200 dark:border-blue-800
-                                           hover:scale-105 active:scale-95"
-                                    [class.bg-blue-500]="vistaPrevia === 'inicial'"
-                                    [class.text-white]="vistaPrevia === 'inicial'"
-                                    [class.dark:bg-blue-500]="vistaPrevia === 'inicial'"
-                                    [class.dark:text-white]="vistaPrevia === 'inicial'">
+                                    class="px-4 sm:px-6 py-2 rounded-lg transition-all cursor-pointer 
+                                           hover:scale-105 active:scale-95
+                                           w-full sm:w-auto
+                                           {{ vistaPrevia === 'inicial' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-500' }}
+                                           dark:{{ vistaPrevia === 'inicial' ? 'bg-blue-600 text-white' : 'bg-blue-900 text-blue-300' }}">
                                     Estado inicial
-                        </button>
-                        <button
+                                </button>
+                                <button
                                     (click)="cambiarVistaPrevia('expandida')"
-                                    class="px-6 py-2 rounded-lg transition-all cursor-pointer 
-                                           bg-blue-100 text-white 
-                                           dark:bg-blue-900 dark:text-white
-                                           hover:bg-blue-500
-                                           border border-blue-200 dark:border-blue-800
-                                           hover:scale-105 active:scale-95"
-                                    [class.bg-blue-500]="vistaPrevia === 'expandida'"
-                                    [class.text-white]="vistaPrevia === 'expandida'"
-                                    [class.dark:bg-blue-500]="vistaPrevia === 'expandida'"
-                                    [class.dark:text-white]="vistaPrevia === 'expandida'">
+                                    class="px-4 sm:px-6 py-2 rounded-lg transition-all cursor-pointer 
+                                           hover:scale-105 active:scale-95
+                                           w-full sm:w-auto
+                                           {{ vistaPrevia === 'expandida' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-500' }}
+                                           dark:{{ vistaPrevia === 'expandida' ? 'bg-blue-600 text-white' : 'bg-blue-900 text-blue-300' }}">
                                     Vista expandida
-                        </button>
+                                </button>
                             </div>
 
                             <div class="space-y-6">
                                 <!-- iOS Preview -->
                                 <div class="relative">
                                     <div 
-                                        class="ios preview-background rounded-xl overflow-hidden shadow-lg"
+                                        class="preview-background rounded-xl overflow-hidden shadow-lg"
                                         style="
                                             background-image: url('https://www.gstatic.com/mobilesdk/190403_mobilesdk/iphone.png'); 
                                             background-size: contain;
@@ -206,8 +200,8 @@
                                                         alt="Notification Image"
                                                         class="banner-image w-16 h-16 rounded-md ml-2 object-cover"
                                                         onerror="this.src='https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'">
-                    </div>
-                </div>
+                                                </div>
+                                            </div>
 
                                             <!-- Contenido para vista expandida -->
                                             <div *ngIf="vistaPrevia === 'expandida'" class="bg-white rounded-lg w-[95%] max-w-sm overflow-hidden relative mt-14">
