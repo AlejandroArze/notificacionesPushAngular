@@ -1,0 +1,15 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+}
+
+.mat-mdc-dialog-content {
+    max-height: none;
+}
+
+.custom-dialog {
+    mat-dialog-container {
+        padding: 0;
+    }
+} 

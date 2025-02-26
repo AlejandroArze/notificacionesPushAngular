@@ -1,0 +1,29 @@
+<div class="card-wrapper" (click)="openCardDetails()">
+    <!-- Problema (Principal) -->
+    <div class="problema-container mb-1">
+        <p class="text-base font-medium">{{card.problema}}</p>
+    </div>
+
+    <!-- Información secundaria en línea -->
+    <div class="flex items-center justify-between">
+        <!-- Oficina y Solicitante -->
+        <div class="flex-grow">
+            <div class="flex items-center space-x-2">
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{card.nombreSolicitante}}</span>
+            </div>
+            <div class="flex items-center space-x-2 mt-2">
+                <span class="text-sm text-gray-500 dark:text-gray-400">{{card.oficinaSolicitante}}</span>
+            </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="estado-badge" [ngClass]="{
+            'bg-gray-100 text-gray-800': card.estado === EstadoServicio.SIN_ASIGNAR,
+            'bg-yellow-500 text-white': card.estado === EstadoServicio.PENDIENTE,
+            'bg-blue-500 text-white': card.estado === EstadoServicio.EN_PROGRESO,
+            'bg-green-500 text-white': card.estado === EstadoServicio.TERMINADO
+        }">
+            {{card.estado}}
+        </div>
+    </div>
+</div>

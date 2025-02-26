@@ -1,0 +1,170 @@
+<div class="flex flex-col min-h-0 max-h-full bg-card dark:bg-transparent">
+    <!-- Header con X -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div class="text-2xl font-semibold leading-tight">Nuevo Servicio</div>
+        <button mat-icon-button (click)="onCancel()">
+            <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Contenido con scroll -->
+    <div class="flex-auto overflow-y-auto">
+        <form [formGroup]="cardForm" (ngSubmit)="onSubmit()">
+            <div class="flex flex-col p-6">
+                <!-- Nombre Solicitante -->
+                <mat-form-field class="w-full">
+                    <mat-label>Nombre Solicitante</mat-label>
+                    <input matInput formControlName="solicitante">
+                </mat-form-field>
+
+                <!-- Carnet, Cargo y Tipo Solicitante -->
+                <div class="grid grid-cols-3 gap-6 mt-4">
+                    <mat-form-field class="w-full">
+                        <mat-label>Carnet Solicitante</mat-label>
+                        <input matInput formControlName="carnet">
+                        <mat-icon matSuffix>search</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field class="w-full">
+                        <mat-label>Cargo</mat-label>
+                        <input matInput formControlName="cargo">
+                    </mat-form-field>
+
+                    <mat-form-field class="w-full">
+                        <mat-label>Tipo Solicitante</mat-label>
+                        <input matInput formControlName="tipoSolicitante">
+                    </mat-form-field>
+                </div>
+
+                <!-- Oficina y Teléfono -->
+                <div class="grid grid-cols-2 gap-6 mt-4">
+                    <mat-form-field class="w-full">
+                        <mat-label>Oficina</mat-label>
+                        <input matInput formControlName="oficina">
+                    </mat-form-field>
+
+                    <mat-form-field class="w-full">
+                        <mat-label>Teléfono</mat-label>
+                        <input matInput formControlName="telefono">
+                    </mat-form-field>
+                </div>
+
+                <!-- Tipo de servicio y Estado -->
+                <div class="grid grid-cols-2 gap-6 mt-4">
+                    <mat-form-field class="w-full">
+                        <mat-label>Tipo de servicio</mat-label>
+                        <mat-select formControlName="tipoServicio">
+                            <mat-option *ngFor="let tipo of tiposServicio" [value]="tipo">
+                                {{tipo}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field class="w-full">
+                        <mat-label>Estado</mat-label>
+                        <input matInput formControlName="estado">
+                    </mat-form-field>
+                </div>
+
+                <!-- Técnico y Fecha de Registro -->
+                <div class="grid grid-cols-2 gap-6 mt-4">
+                    <mat-form-field class="w-full">
+                        <mat-label>Técnico del Registro</mat-label>
+                        <input matInput formControlName="tecnicoRegistro">
+                    </mat-form-field>
+
+                    <mat-form-field class="w-full">
+                        <mat-label>Fecha Registro</mat-label>
+                        <input matInput [value]="cardForm.get('fechaRegistro').value | date:'longDate'" disabled>
+                    </mat-form-field>
+                </div>
+
+                <!-- Fechas -->
+                <div class="grid grid-cols-2 gap-6 mt-4">
+                    <mat-form-field class="w-full">
+                        <mat-label>Fecha Inicio</mat-label>
+                        <input matInput formControlName="fechaInicio" [matDatepicker]="pickerInicio">
+                        <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+                        <mat-datepicker #pickerInicio></mat-datepicker>
+                    </mat-form-field>
+
+                    <mat-form-field class="w-full">
+                        <mat-label>Fecha Terminado</mat-label>
+                        <input matInput formControlName="fechaTerminado" [matDatepicker]="pickerTerminado">
+                        <mat-datepicker-toggle matSuffix [for]="pickerTerminado"></mat-datepicker-toggle>
+                        <mat-datepicker #pickerTerminado></mat-datepicker>
+                    </mat-form-field>
+                </div>
+
+                <!-- Problema -->
+                <div class="mt-4">
+                    <mat-form-field class="w-full">
+                        <mat-label>Problema</mat-label>
+                        <textarea matInput formControlName="problema" rows="4"></textarea>
+                    </mat-form-field>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="mt-4">
+                    <mat-form-field class="w-full">
+                        <mat-label>Observaciones</mat-label>
+                        <textarea matInput formControlName="observaciones" rows="4"></textarea>
+                    </mat-form-field>
+                </div>
+
+                <!-- Informe -->
+                <div class="mt-4">
+                    <mat-form-field class="w-full">
+                        <mat-label>Informe</mat-label>
+                        <textarea matInput formControlName="informe" rows="4"></textarea>
+                    </mat-form-field>
+                </div>
+
+                <!-- Equipo -->
+                <div class="mt-4">
+                    <mat-form-field class="w-full">
+                        <mat-label>Equipo</mat-label>
+                        <input matInput formControlName="equipo">
+                        <button mat-icon-button matSuffix>
+                            <mat-icon>search</mat-icon>
+                        </button>
+                    </mat-form-field>
+                </div>
+
+                <!-- Información de Bienes -->
+                <div class="mt-4">
+                    <div class="text-lg font-medium mb-2">Información de Bienes</div>
+                    <div class="grid grid-cols-1 gap-4">
+                        <mat-form-field class="w-full">
+                            <mat-label>Tipo hardware</mat-label>
+                            <input matInput formControlName="tipoHardware">
+                        </mat-form-field>
+
+                        <mat-form-field class="w-full">
+                            <mat-label>Descripción</mat-label>
+                            <textarea matInput formControlName="descripcion" rows="3"></textarea>
+                        </mat-form-field>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions - Fijos en la parte inferior -->
+            <div class="sticky bottom-0 flex items-center justify-end px-6 py-4 border-t bg-gray-50 dark:bg-gray-900 dark:border-gray-700">
+                <button
+                    mat-stroked-button
+                    type="button"
+                    class="rounded-full"
+                    (click)="onCancel()">
+                    Cancelar
+                </button>
+                <button
+                    class="ml-4 rounded-full"
+                    mat-flat-button
+                    [color]="'primary'"
+                    type="submit">
+                    Crear
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

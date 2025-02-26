@@ -1,0 +1,261 @@
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-y-auto" cdkScrollable>
+
+    <!-- Contenido existente del board -->
+    <div class="board-content">
+        <!-- Header -->
+        <div class="board-header">
+            <div class="header-content">
+                <!-- Título arriba -->
+                <div class="title-section mb-4">
+                    <h2 class="board-title text-2xl font-bold">{{board?.title}}</h2>
+                </div>
+
+                <!-- Contenedor flex para tarjetas y controles -->
+                <div class="flex items-center gap-4">
+                    <!-- Versión móvil: Desplegable -->
+                    <div class="block lg:hidden flex-grow">
+                        <mat-form-field class="w-full min-w-[200px]">
+                            <mat-label>Tipo de Servicio</mat-label>
+                            <mat-select 
+                                [(ngModel)]="selectedTipoServicio"
+                                (selectionChange)="filterByType($event.value)">
+                                <mat-select-trigger>
+                                    <!-- Contenido visible en el área de texto -->
+                                    <div class="flex items-center">
+                                        <mat-icon class="mr-2 text-primary-600" 
+                                                 [svgIcon]="getSelectedServiceIcon()">
+                                        </mat-icon>
+                                        <div>
+                                            <div class="font-medium">{{board?.title}}</div>
+                                            <div class="text-xs text-secondary">{{getSelectedServiceDescription()}}</div>
+                                        </div>
+                                    </div>
+                                </mat-select-trigger>
+                                
+                                <!-- Opciones del desplegable -->
+                                <mat-option value="asistencia" class="h-16">
+                                    <div class="flex items-center">
+                                        <mat-icon class="mr-2 text-primary-600" [svgIcon]="'heroicons_outline:computer-desktop'"></mat-icon>
+                                        <div>
+                                            <div class="font-medium">ASISTENCIA</div>
+                                            <div class="text-xs text-secondary">Servicios de asistencia técnica en sitio</div>
+                                        </div>
+                                    </div>
+                                </mat-option>
+                                <mat-option value="laboratorio" class="h-16">
+                                    <div class="flex items-center">
+                                        <mat-icon class="mr-2 text-primary-600" [svgIcon]="'heroicons_outline:beaker'"></mat-icon>
+                                        <div>
+                                            <div class="font-medium">EN LABORATORIO</div>
+                                            <div class="text-xs text-secondary">Servicios de mantenimiento en laboratorio</div>
+                                        </div>
+                                    </div>
+                                </mat-option>
+                                <mat-option value="remota" class="h-16">
+                                    <div class="flex items-center">
+                                        <mat-icon class="mr-2 text-primary-600" [svgIcon]="'heroicons_outline:globe-alt'"></mat-icon>
+                                        <div>
+                                            <div class="font-medium">REMOTA</div>
+                                            <div class="text-xs text-secondary">Servicios de asistencia técnica remota</div>
+                                        </div>
+                                    </div>
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+
+                    <!-- Versión desktop: Tarjetas -->
+                    <div class="hidden lg:flex lg:flex-grow grid grid-cols-3 gap-4">
+                        <!-- Tarjeta ASISTENCIA -->
+                        <div class="flex items-center w-full p-4 rounded-lg shadow bg-card hover:shadow-xl transition-shadow duration-150 ease-in-out cursor-pointer"
+                             [class.bg-primary-100]="board?.id === 'asistencia-sitio'"
+                             [class.dark:text-gray-900]="board?.id === 'asistencia-sitio'"
+                             (click)="filterByType('asistencia')">
+                            <div class="flex items-center justify-center p-4 rounded-full bg-primary-600 shrink-0">
+                                <mat-icon class="text-white" [svgIcon]="'heroicons_outline:computer-desktop'"></mat-icon>
+                            </div>
+                            <div class="ml-4 flex-grow" [class.dark:text-gray-900]="board?.id === 'asistencia-sitio'">
+                                <div class="text-lg font-medium">ASISTENCIA</div>
+                                <div class="text-sm" [class.text-secondary]="board?.id !== 'asistencia-sitio'">
+                                    Servicios de asistencia técnica en sitio
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tarjeta EN LABORATORIO -->
+                        <div class="flex items-center w-full p-4 rounded-lg shadow bg-card hover:shadow-xl transition-shadow duration-150 ease-in-out cursor-pointer"
+                             [class.bg-primary-100]="board?.id === 'servicio-laboratorio'"
+                             [class.dark:text-gray-900]="board?.id === 'servicio-laboratorio'"
+                             (click)="filterByType('laboratorio')">
+                            <div class="flex items-center justify-center p-4 rounded-full bg-primary-600 shrink-0">
+                                <mat-icon class="text-white" [svgIcon]="'heroicons_outline:beaker'"></mat-icon>
+                            </div>
+                            <div class="ml-4 flex-grow" [class.dark:text-gray-900]="board?.id === 'servicio-laboratorio'">
+                                <div class="text-lg font-medium">EN LABORATORIO</div>
+                                <div class="text-sm" [class.text-secondary]="board?.id !== 'servicio-laboratorio'">
+                                    Servicios de mantenimiento en laboratorio
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tarjeta REMOTA -->
+                        <div class="flex items-center w-full p-4 rounded-lg shadow bg-card hover:shadow-xl transition-shadow duration-150 ease-in-out cursor-pointer"
+                             [class.bg-primary-100]="board?.id === 'asistencia-remota'"
+                             [class.dark:text-gray-900]="board?.id === 'asistencia-remota'"
+                             (click)="filterByType('remota')">
+                            <div class="flex items-center justify-center p-4 rounded-full bg-primary-600 shrink-0">
+                                <mat-icon class="text-white" [svgIcon]="'heroicons_outline:globe-alt'"></mat-icon>
+                            </div>
+                            <div class="ml-4 flex-grow" [class.dark:text-gray-900]="board?.id === 'asistencia-remota'">
+                                <div class="text-lg font-medium">REMOTA</div>
+                                <div class="text-sm" [class.text-secondary]="board?.id !== 'asistencia-remota'">
+                                    Servicios de asistencia técnica remota
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controles a la derecha -->
+                    <div class="flex items-center gap-4 ml-4">
+                        <button
+                            mat-flat-button
+                            [color]="'primary'"
+                            [disabled]="!canCreateService()"
+                            (click)="createNewService()">
+                            <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                            <span class="ml-2 hidden sm:inline">Nuevo Servicio</span>
+                        </button>
+                        <mat-form-field class="tecnico-select-wide">
+                            <mat-label>Técnico asignado</mat-label>
+                            <mat-select 
+                                [(ngModel)]="selectedTecnicoId"
+                                (selectionChange)="onTecnicoFilterChange($event.value)"
+                                [disabled]="!canSelectTecnico">
+                                
+                                <!-- Campo de búsqueda -->
+                                <mat-select-trigger>
+                                    {{ getSelectedTecnicoDisplay() }}
+                                </mat-select-trigger>
+
+                                <div *ngIf="canSelectTecnico" class="search-box">
+                                    <mat-form-field appearance="outline" class="w-full">
+                                        <mat-icon matPrefix class="mr-2">search</mat-icon>
+                                        <input 
+                                            matInput
+                                            [ngModel]="searchTerm"
+                                            (ngModelChange)="onSearchChange($event)"
+                                            placeholder="Buscar técnico...">
+                                    </mat-form-field>
+                                </div>
+
+                                
+                                <mat-option *ngFor="let tecnico of filteredTecnicos" [value]="tecnico.id">
+                                    {{ tecnico.nombre }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Board  <mat-option *ngIf="canSelectTecnico" [value]="'TODOS'">TODOS</mat-option>-->
+        <div class="board-container">
+            <div class="lists-container">
+                <!-- Lists -->
+                <div *ngFor="let list of filterListsByRole(lists)" 
+                     [id]="list.id" 
+                     class="list-wrapper"
+                     [class.hidden]="isListHidden(list.id)">
+                    
+                    <!-- List header -->
+                    <div class="list-header">
+                        <div class="list-title">
+                            <span class="title">{{list.title}}</span>
+                        </div>
+                        
+                        <div class="list-header-actions">
+                            <span class="counter">{{listStates[list.id].total || 0}}</span>
+                            <button mat-icon-button [matMenuTriggerFor]="listMenu" class="list-menu">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                            <mat-menu #listMenu="matMenu">
+                                <button mat-menu-item (click)="hideList(list.id)">
+                                    <mat-icon>visibility_off</mat-icon>
+                                    <span>Ocultar lista</span>
+                                </button>
+                            </mat-menu>
+                        </div>
+                    </div>
+                    
+                    <!-- List content -->
+                    <div class="list-cards" 
+                         cdkDropList 
+                         [id]="list.id"
+                         [cdkDropListData]="list.cards"
+                         (cdkDropListDropped)="cardDropped($event)"
+                         [cdkDropListConnectedTo]="getConnectedLists()">
+                        
+                        <scrumboard-card *ngFor="let card of list.cards"
+                            [card]="card"
+                            cdkDrag
+                            [cdkDragData]="card">
+                        </scrumboard-card>
+
+                        <!-- Paginación -->
+                        <div *ngIf="listStates[list.id].total > listStates[list.id].limit" 
+                             class="pagination-controls">
+                            <div class="pagination-info">
+                                <div class="items-info">
+                                    {{getStartIndex(list.id)}} - {{getEndIndex(list.id)}} de {{listStates[list.id].total}} 
+                                
+                                   - Página {{listStates[list.id].page}} de {{getTotalPages(list.id)}}
+                                </div>
+                            </div>
+                            <div class="pagination-buttons">
+                                <button mat-icon-button 
+                                        [disabled]="listStates[list.id].page === 1"
+                                        (click)="goToPage(list.id, 1)"
+                                        matTooltip="Primera página">
+                                    <mat-icon>first_page</mat-icon>
+                                </button>
+                                <button mat-icon-button 
+                                        [disabled]="listStates[list.id].page === 1"
+                                        (click)="goToPage(list.id, listStates[list.id].page - 1)"
+                                        matTooltip="Página anterior">
+                                    <mat-icon>chevron_left</mat-icon>
+                                </button>
+                                <button mat-icon-button 
+                                        [disabled]="listStates[list.id].page >= getTotalPages(list.id)"
+                                        (click)="goToPage(list.id, listStates[list.id].page + 1)"
+                                        matTooltip="Página siguiente">
+                                    <mat-icon>chevron_right</mat-icon>
+                                </button>
+                                <button mat-icon-button 
+                                        [disabled]="listStates[list.id].page >= getTotalPages(list.id)"
+                                        (click)="goToPage(list.id, getTotalPages(list.id))"
+                                        matTooltip="Última página">
+                                    <mat-icon>last_page</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden Lists Menu -->
+                <div *ngIf="hiddenLists.length > 0"
+                     class="hidden-lists-menu">
+                    <div class="title">Listas Ocultas</div>
+                    <div *ngFor="let listId of hiddenLists">
+                        <button mat-button 
+                                class="hidden-list-item"
+                                (click)="showList(listId)">
+                            <mat-icon class="mr-2">visibility</mat-icon>
+                            <span>Mostrar {{ getListTitle(listId) }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

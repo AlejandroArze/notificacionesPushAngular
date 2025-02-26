@@ -1,0 +1,226 @@
+<div class="w-full max-w-3xl p-6 sm:p-8 bg-card shadow rounded-2xl">
+    <!-- Sección Principal -->
+    <div class="w-full mb-8">
+        <h2 class="text-3xl font-bold tracking-tight leading-none">Mi Cuenta</h2>
+        <p class="mt-2 text-secondary">Gestiona tu información personal y preferencias</p>
+    </div>
+
+    <!-- Formulario Principal -->
+    <form [formGroup]="accountForm" class="space-y-8">
+        <!-- Información Personal -->
+        <div class="space-y-6">
+            <!-- Foto de perfil -->
+            <div class="flex flex-col items-center space-y-4">
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
+                    <img *ngIf="imagePreview" [src]="imagePreview" 
+                         class="w-full h-full object-cover"
+                         alt="Foto de perfil">
+                    <div *ngIf="!imagePreview" 
+                         class="w-full h-full flex items-center justify-center bg-gray-100">
+                        <mat-icon class="text-4xl text-gray-400">person</mat-icon>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3 relative z-0">
+                    <button type="button"
+                            mat-flat-button
+                            color="primary"
+                            (click)="fileInput.click()">
+                        <mat-icon class="mr-2">photo_camera</mat-icon>
+                        Cambiar foto
+                    </button>
+                    <input #fileInput
+                           type="file"
+                           accept="image/*"
+                           class="hidden"
+                           (change)="onFileSelected($event)">
+                </div>
+                <span *ngIf="imageName" class="text-sm text-gray-500">
+                    {{ imageName }}
+                </span>
+            </div>
+
+            <!-- Campos de información -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <mat-form-field appearance="outline">
+                    <mat-label>Nombres</mat-label>
+                    <input matInput formControlName="name">
+                    <mat-icon matPrefix>person</mat-icon>
+                    <mat-error *ngIf="accountForm.get('name').hasError('required')">
+                        Este campo es requerido
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Apellidos</mat-label>
+                    <input matInput formControlName="lastname">
+                    <mat-icon matPrefix>person</mat-icon>
+                    <mat-error *ngIf="accountForm.get('lastname').hasError('required')">
+                        Este campo es requerido
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Usuario</mat-label>
+                    <input matInput formControlName="username">
+                    <mat-icon matPrefix>account_circle</mat-icon>
+                    <mat-error *ngIf="accountForm.get('username').hasError('required')">
+                        Este campo es requerido
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Correo Electrónico</mat-label>
+                    <input matInput formControlName="email" type="email">
+                    <mat-icon matPrefix>email</mat-icon>
+                    <mat-error *ngIf="accountForm.get('email').hasError('required')">
+                        Este campo es requerido
+                    </mat-error>
+                    <mat-error *ngIf="accountForm.get('email').hasError('email')">
+                        Ingrese un correo electrónico válido
+                    </mat-error>
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- Sección de Contraseña -->
+        <div class="border-t pt-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-xl font-semibold">Cambiar Contraseña</h3>
+                    <p class="text-secondary">¡Solo puedes cambiar tu contraseña dos veces en 24 horas!</p>
+                </div>
+                <button type="button"
+                        mat-flat-button
+                        color="primary"
+                        (click)="togglePasswordSection()">
+                    {{ showPasswordSection ? 'Cancelar' : 'Cambiar contraseña' }}
+                </button>
+            </div>
+
+            <!-- Formulario independiente para cambio de contraseña -->
+            <form *ngIf="showPasswordSection" [formGroup]="passwordForm" class="space-y-4">
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Contraseña actual</mat-label>
+                    <input matInput type="password" formControlName="currentPassword">
+                    <mat-icon matPrefix>lock</mat-icon>
+                    <mat-error *ngIf="passwordForm.get('currentPassword').hasError('required')">
+                        La contraseña actual es requerida
+                    </mat-error>
+                    <mat-error *ngIf="passwordForm.get('currentPassword').hasError('incorrect')">
+                        La contraseña actual es incorrecta
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Nueva contraseña</mat-label>
+                    <input matInput type="password" formControlName="newPassword">
+                    <mat-icon matPrefix>lock_reset</mat-icon>
+                </mat-form-field>
+
+                <!-- Mensajes dinámicos de validación -->
+                <div class="mt-1">
+                    <div class="flex flex-wrap gap-4">
+                        <div class="text-sm" [class.text-green-600]="passwordLength" [class.text-red-600]="!passwordLength">
+                            <mat-icon class="icon-size-4 align-middle" [svgIcon]="passwordLength ? 'heroicons_solid:check-circle' : 'heroicons_solid:x-circle'"></mat-icon>
+                            Mínimo 8 caracteres
+                        </div>
+                        <div class="text-sm" [class.text-green-600]="hasNumber" [class.text-red-600]="!hasNumber">
+                            <mat-icon class="icon-size-4 align-middle" [svgIcon]="hasNumber ? 'heroicons_solid:check-circle' : 'heroicons_solid:x-circle'"></mat-icon>
+                            Incluir número
+                        </div>
+                        <div class="text-sm" [class.text-green-600]="hasLetter" [class.text-red-600]="!hasLetter">
+                            <mat-icon class="icon-size-4 align-middle" [svgIcon]="hasLetter ? 'heroicons_solid:check-circle' : 'heroicons_solid:x-circle'"></mat-icon>
+                            Incluir letra
+                        </div>
+                        <div class="text-sm" [class.text-green-600]="hasSpecialChar" [class.text-red-600]="!hasSpecialChar">
+                            <mat-icon class="icon-size-4 align-middle" [svgIcon]="hasSpecialChar ? 'heroicons_solid:check-circle' : 'heroicons_solid:x-circle'"></mat-icon>
+                            Incluir carácter especial
+                        </div>
+                    </div>
+                </div>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Confirmar nueva contraseña</mat-label>
+                    <input matInput type="password" formControlName="confirmPassword">
+                    <mat-icon matPrefix>lock_reset</mat-icon>
+                    <mat-error *ngIf="passwordForm.hasError('passwordMismatch')">
+                        Las contraseñas no coinciden
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="flex justify-end">
+                    <button type="button"
+                            mat-flat-button
+                            color="primary"
+                            [disabled]="passwordForm.invalid || passwordForm.hasError('passwordMismatch')"
+                            (click)="changePassword()">
+                        Actualizar contraseña
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="flex justify-end space-x-3">
+            <button
+                mat-stroked-button
+                type="button"
+                (click)="resetForm()">
+                Cancelar
+            </button>
+            <button
+                mat-flat-button
+                [color]="'primary'"
+                type="button"
+                [disabled]="accountForm.invalid"
+                (click)="onSubmit()">
+                Guardar
+            </button>
+        </div>
+    </form>
+
+    <!-- Diálogo de confirmación de contraseña -->
+    <div *ngIf="showPasswordConfirmation"
+         class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="w-full max-w-3xl p-6 sm:p-8 bg-card shadow rounded-2xl">
+            <div class="w-full mb-8">
+                <h2 class="text-3xl font-bold tracking-tight leading-none">Confirmar Contraseña</h2>
+                <p class="mt-2 text-secondary">Por favor, ingresa tu contraseña actual para confirmar los cambios.</p>
+            </div>
+            
+            <form [formGroup]="passwordForm" class="space-y-6">
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Contraseña actual</mat-label>
+                    <input matInput
+                           type="password"
+                           formControlName="currentPassword"
+                           required>
+                    <mat-icon matPrefix>lock</mat-icon>
+                    <mat-error *ngIf="passwordForm.get('currentPassword').hasError('required')">
+                        La contraseña es requerida
+                    </mat-error>
+                    <mat-error *ngIf="passwordForm.get('currentPassword').hasError('incorrect')">
+                        La contraseña es incorrecta
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="flex justify-end space-x-3">
+                    <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="cancelPasswordConfirmation()">
+                        Cancelar
+                    </button>
+                    <button
+                        mat-flat-button
+                        [color]="'primary'"
+                        type="button"
+                        (click)="confirmUpdate()"
+                        [disabled]="!passwordForm.get('currentPassword').value">
+                        Confirmar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

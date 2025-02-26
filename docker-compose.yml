@@ -1,0 +1,71 @@
+services:
+  frontend:
+    container_name: plataformasoporte-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    restart: always
+    volumes:
+      - ./frontend:/code
+      - /code/node_modules
+    command: npm start
+    networks:
+      - plataformasoporte-network
+
+  backend:
+    container_name: plataformasoporte-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    command: >
+      sh -c "npx sequelize-cli db:migrate && node app"
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_NAME=laboratorio_bd
+      - TZ=America/La_Paz
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      # Volumen para archivos persistentes
+      #- /srv/docker-volumenes/plataformasoporte:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - plataformasoporte-network
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: laboratorio_bd
+      PGDATA: /var/lib/postgresql/data/pgdata
+      TZ: America/La_Paz
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/pgdata
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d laboratorio_bd"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - plataformasoporte-network
+
+networks:
+  plataformasoporte-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

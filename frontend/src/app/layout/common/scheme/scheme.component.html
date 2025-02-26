@@ -1,0 +1,7 @@
+<button
+    mat-icon-button
+    [matTooltip]="'Cambiar tema'"
+    (click)="toggleScheme()">
+    <mat-icon *ngIf="scheme === 'dark'" [svgIcon]="'heroicons_outline:sun'"></mat-icon>
+    <mat-icon *ngIf="scheme === 'light'" [svgIcon]="'heroicons_outline:moon'"></mat-icon>
+</button>

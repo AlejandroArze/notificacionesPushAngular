@@ -1,0 +1,114 @@
+<div class="w-full max-w-3xl p-6 sm:p-8 bg-card shadow rounded-2xl">
+    <!-- Mensaje de alerta si no hay usuario seleccionado -->
+    <div *ngIf="message" class="mb-8 p-4 rounded-lg" 
+         [ngClass]="{
+             'bg-amber-50 text-amber-700 border border-amber-200': message.includes('Error'),
+             'bg-green-50 text-green-700 border border-green-200': message.includes('exitosamente')
+         }">
+        {{ message }}
+    </div>
+
+    <!-- Sección Principal -->
+    <div class="w-full mb-8">
+        <h2 class="text-3xl font-bold tracking-tight leading-none">Información del Usuario</h2>
+        <p class="mt-2 text-secondary">Gestiona la información y permisos del usuario</p>
+    </div>
+
+    <!-- Formulario Principal -->
+    <form [formGroup]="editAccountForm" class="space-y-8">
+        <!-- Información Personal -->
+        <div class="space-y-6">
+            <!-- Foto de perfil (solo visualización) -->
+            <div class="flex flex-col items-center space-y-4">
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
+                    <img *ngIf="imagePreview" 
+                         [src]="imagePreview" 
+                         class="w-full h-full object-cover"
+                         alt="Foto de perfil"
+                         (error)="handleImageError()">
+                    <div *ngIf="!imagePreview" 
+                         class="w-full h-full flex items-center justify-center bg-gray-100">
+                        <span *ngIf="userInitials" class="text-3xl font-bold text-gray-700">
+                            {{ userInitials }}
+                        </span>
+                        <mat-icon *ngIf="!userInitials" class="text-4xl text-gray-400">person</mat-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos de información (solo lectura) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <mat-form-field appearance="outline">
+                    <mat-label>Nombres</mat-label>
+                    <input matInput formControlName="name" readonly>
+                    <mat-icon matPrefix>person</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Apellidos</mat-label>
+                    <input matInput formControlName="lastname" readonly>
+                    <mat-icon matPrefix>person</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Usuario</mat-label>
+                    <input matInput formControlName="username" readonly>
+                    <mat-icon matPrefix>account_circle</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Correo Electrónico</mat-label>
+                    <input matInput formControlName="email" type="email" readonly>
+                    <mat-icon matPrefix>email</mat-icon>
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- Información del Sistema -->
+        <div class="space-y-6">
+            <h3 class="text-xl font-semibold">Información del Sistema</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <mat-form-field appearance="outline">
+                    <mat-label>Rol</mat-label>
+                    <mat-select formControlName="roles" [disabled]="!canEditRole">
+                        <mat-option *ngIf="userRole === '1'" value="1">Super Admin</mat-option>
+                        <mat-option *ngIf="userRole === '1' || (userRole === '2' && editingUserRole !== '1')" value="2">Admin</mat-option>
+                        <mat-option *ngIf="userRole === '1' || userRole === '2'" value="3">Técnico</mat-option>
+                    </mat-select>
+                    <mat-icon matPrefix>admin_panel_settings</mat-icon>
+                    <mat-error *ngIf="editAccountForm.get('roles').hasError('required')">
+                        Este campo es requerido
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" *ngIf="userRole === '1'">
+                    <mat-label>Estado</mat-label>
+                    <mat-select formControlName="status">
+                        <mat-option value="1">ACTIVO</mat-option>
+                        <mat-option value="0">INACTIVO</mat-option>
+                    </mat-select>
+                    <mat-icon matPrefix>how_to_reg</mat-icon>
+                    <mat-error *ngIf="editAccountForm.get('status').hasError('required')">
+                        Este campo es requerido
+                    </mat-error>
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="flex justify-end space-x-3 border-t pt-6">
+            <button type="button"
+                    mat-stroked-button
+                    (click)="cancelled.emit()">
+                Cancelar
+            </button>
+            <button type="button"
+                    mat-flat-button
+                    color="primary"
+                    [disabled]="!editAccountForm.valid"
+                    (click)="saveChanges()">
+                Guardar cambios
+            </button>
+        </div>
+    </form>
+</div>

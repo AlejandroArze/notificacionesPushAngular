@@ -1,0 +1,255 @@
+<div class="flex flex-col max-w-240 md:min-w-160 max-h-screen -m-6">
+    <!-- Header -->
+    <div class="flex flex-0 items-center justify-between h-16 pr-3 pl-6 bg-primary text-on-primary">
+        <div class="text-lg font-medium">{{ data.isNew ? 'Nuevo Servicio' : 'Detalles del Servicio' }}</div>
+        <div class="flex items-center">
+            <!-- Botón eliminar -->
+            <button mat-icon-button 
+                    class="text-red-500"
+                    [matTooltip]="'Eliminar servicio'"
+                    (click)="onDelete()">
+                <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+            </button>
+            <!-- Botón cerrar -->
+            <button mat-icon-button (click)="onCancel()">
+                <mat-icon class="text-current" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <form [formGroup]="cardForm" (ngSubmit)="onSubmit()" class="flex flex-col flex-auto p-6 overflow-y-auto">
+        <!-- Información del Solicitante -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <!-- Nombre del Solicitante (ocupando todo el ancho) -->
+            <mat-form-field class="w-full sm:col-span-2">
+                <mat-label>Nombre del Solicitante</mat-label>
+                <input matInput formControlName="solicitante">
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Carnet de Identidad</mat-label>
+                <input matInput formControlName="carnet">
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Cargo</mat-label>
+                <input matInput formControlName="cargoSolicitante">
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Tipo de Solicitante</mat-label>
+                <input matInput formControlName="tipoSolicitante">
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Oficina</mat-label>
+                <input matInput formControlName="oficina">
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Teléfono</mat-label>
+                <input matInput formControlName="telefono">
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Tipo de Servicio</mat-label>
+                <mat-select formControlName="tipoServicio">
+                    <mat-option *ngFor="let tipo of tiposServicio" [value]="tipo">
+                        {{tipo}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <!-- Información del Servicio -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
+            <mat-form-field class="w-full">
+                <mat-label>Técnico Registro</mat-label>
+                <input matInput [value]="tecnicoRegistroNombre" readonly>
+                <input type="hidden" formControlName="tecnicoRegistro">
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Fecha de Registro</mat-label>
+                <input matInput [matDatepicker]="pickerRegistro" formControlName="fechaRegistro">
+                <mat-datepicker-toggle matSuffix [for]="pickerRegistro"></mat-datepicker-toggle>
+                <mat-datepicker #pickerRegistro></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Fecha de Inicio</mat-label>
+                <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicio">
+                <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+                <mat-datepicker #pickerInicio></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Fecha de Término</mat-label>
+                <input matInput [matDatepicker]="pickerTermino" formControlName="fechaTerminado">
+                <mat-datepicker-toggle matSuffix [for]="pickerTermino"></mat-datepicker-toggle>
+                <mat-datepicker #pickerTermino></mat-datepicker>
+            </mat-form-field>
+
+            <!-- Técnico Asignado -->
+            <div class="relative w-full">
+                <mat-form-field class="w-full">
+                    <mat-label>Técnico Asignado</mat-label>
+                    <input matInput
+                           [value]="getSelectedTecnicoDisplay()"
+                           (input)="onSearchChange($event.target.value)"
+                           (focus)="showTecnicosDropdown = canSelectTecnico"
+                           [placeholder]="'Buscar técnico...'"
+                           [readonly]="!canSelectTecnico">
+                    <mat-icon matSuffix class="icon-size-5" *ngIf="canSelectTecnico">search</mat-icon>
+                </mat-form-field>
+
+                <!-- Mensaje de estado del técnico -->
+                <div *ngIf="getTecnicoEstado() as estado" 
+                     [class]="estado.color"
+                     class="text-sm mt-1 ml-1">
+                    {{ estado.message }}
+                </div>
+
+                <!-- Dropdown para técnicos -->
+                <div *ngIf="showTecnicosDropdown && filteredTecnicos.length > 0 && canSelectTecnico"
+                     class="tecnicos-dropdown dropdown-container absolute left-0 right-0 z-[9999] mt-1 shadow-lg overflow-hidden border rounded-md bg-white dark:bg-gray-800"
+                     style="backdrop-filter: none; -webkit-backdrop-filter: none;">
+                    <div class="max-h-64 overflow-y-auto">
+                        <div *ngFor="let tecnico of filteredTecnicos"
+                             class="px-4 py-2 cursor-pointer transition-colors duration-150 hover:bg-gray-100 dark:hover:bg-gray-700"
+                             [ngClass]="{
+                                 'text-gray-900 dark:text-gray-100': true,
+                                 'bg-white dark:bg-gray-800': true
+                             }"
+                             (click)="onTecnicoFilterChange(tecnico.id); showTecnicosDropdown = false">
+                            {{ tecnico.nombre }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalles del Problema -->
+        <div class="grid grid-cols-1 gap-6 mt-8">
+            <mat-form-field class="w-full">
+                <mat-label>Problema</mat-label>
+                <textarea matInput formControlName="problema" rows="3"></textarea>
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Observaciones</mat-label>
+                <textarea matInput formControlName="observaciones" rows="3"></textarea>
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Informe</mat-label>
+                <textarea matInput formControlName="informe" rows="3"></textarea>
+            </mat-form-field>
+        </div>
+
+        <!-- Información del Equipo -->
+        <div class="grid grid-cols-1 gap-6 mt-8">
+            <!-- Código de Bienes -->
+            <div class="relative w-full">
+                <mat-form-field class="w-full">
+                    <mat-label>Código de Bienes</mat-label>
+                    <input matInput
+                           #searchInput
+                           [formControl]="searchEquipoCtrl"
+                           (input)="onSearchEquipos($event)"
+                           (focus)="onFocus()"
+                           placeholder="Buscar por código">
+                    <button matSuffix
+                            mat-icon-button
+                            type="button"
+                            (click)="getBienes()"
+                            matTooltip="Buscar por código"
+                            class="!w-8 !h-8 !min-w-0"
+                            tabindex="-1">
+                        <mat-icon class="icon-size-4">search</mat-icon>
+                    </button>
+                </mat-form-field>
+
+                <!-- Dropdown para equipos -->
+                <div *ngIf="showEquiposDropdown && filtredEquipos.length > 0"
+                     class="equipos-dropdown dropdown-container absolute left-0 right-0 z-[9999] mt-1 shadow-lg overflow-hidden border rounded-md bg-white dark:bg-gray-800"
+                     style="backdrop-filter: none; -webkit-backdrop-filter: none;">
+                    <div class="max-h-64 overflow-y-auto">
+                        <div *ngFor="let equipo of filtredEquipos"
+                             class="px-4 py-2 cursor-pointer transition-colors duration-150 hover:bg-gray-100 dark:hover:bg-gray-700"
+                             [ngClass]="{
+                                 'text-gray-900 dark:text-gray-100': true,
+                                 'bg-white dark:bg-gray-800': true
+                             }"
+                             (click)="selectEquipo(equipo)">
+                            {{ equipo.codigo }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Bienes -->
+            <div *ngIf="bienes" class="mt-4">
+                <mat-card appearance="outlined">
+                    <mat-card-content>
+                        <!-- Tipo de hardware -->
+                        <p *ngIf="bienes.data?.tipo; else noData"><b>Tipo hardware:</b> {{ bienes.data.tipo }}</p>
+                        <ng-template #noData><p><b>Tipo hardware:</b> No hay datos</p></ng-template>
+                        
+                        <!-- Descripción -->
+                        <p *ngIf="bienes.data?.observacion; else noDescription"><b>Descripción:</b> {{ bienes.data.observacion }}</p>
+                        <ng-template #noDescription><p><b>Descripción:</b> No hay datos</p></ng-template>
+                        
+                        <!-- Características -->
+                        <p><b>Características:</b></p>
+                        <ul *ngIf="bienes.data?.caracteristicas; else noCharacteristics">
+                            <li><b>Marca:</b> {{ bienes.data.caracteristicas.MARCA }}</li>
+                            <li><b>Modelo:</b> {{ bienes.data.caracteristicas.MODELO }}</li>
+                            <li><b>Serie:</b> {{ bienes.data.caracteristicas.SERIE }}</li>
+                        </ul>
+                        <ng-template #noCharacteristics>
+                            <p>No hay datos de características</p>
+                        </ng-template>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </div>
+    </form>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end gap-2 px-6 py-4 border-t bg-gray-50 dark:bg-gray-900">
+        <button
+            mat-stroked-button
+            type="button"
+            (click)="onCancel()">
+            Cerrar
+        </button>
+        <button
+            mat-flat-button
+            type="button"
+            [color]="'primary'"
+            [disabled]="actualizando"
+            (click)="onSubmit()">
+            {{ actualizando ? 'Actualizando...' : 'Actualizar' }}
+        </button>
+        <!-- Botón PDF -->
+        <button
+            mat-mini-fab
+            [color]="'accent'"
+            class="ml-2"
+            matTooltip="Generar PDF"
+            (click)="generarPDF()">
+            <mat-icon class="icon-size-5">picture_as_pdf</mat-icon>
+        </button>
+        <!-- Botón Imprimir -->
+        <button
+            mat-mini-fab
+            [color]="'accent'"
+            class="ml-2"
+            matTooltip="Imprimir"
+            (click)="imprimirPDF()">
+            <mat-icon class="icon-size-5">print</mat-icon>
+        </button>
+    </div>
+</div>

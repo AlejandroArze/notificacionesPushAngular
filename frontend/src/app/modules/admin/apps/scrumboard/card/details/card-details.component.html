@@ -1,0 +1,96 @@
+<div class="flex flex-col h-full bg-card dark:bg-transparent">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-8 border-b">
+        <div class="text-4xl font-extrabold tracking-tight">Detalles del Servicio</div>
+        <button mat-icon-button (click)="closeDetails()">
+            <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Main -->
+    <div class="flex-auto p-8 overflow-y-auto">
+        <form [formGroup]="cardForm" (ngSubmit)="onSubmit()">
+            <!-- Solicitante -->
+            <div class="grid grid-cols-2 gap-6">
+                <mat-form-field class="w-full">
+                    <mat-label>Solicitante</mat-label>
+                    <input matInput formControlName="solicitante">
+                </mat-form-field>
+
+                <mat-form-field class="w-full">
+                    <mat-label>Carnet</mat-label>
+                    <input matInput formControlName="carnet">
+                </mat-form-field>
+            </div>
+
+            <!-- Información de contacto -->
+            <div class="grid grid-cols-3 gap-6 mt-8">
+                <mat-form-field class="w-full">
+                    <mat-label>Cargo</mat-label>
+                    <input matInput formControlName="cargo">
+                </mat-form-field>
+
+                <mat-form-field class="w-full">
+                    <mat-label>Oficina</mat-label>
+                    <input matInput formControlName="oficina">
+                </mat-form-field>
+
+                <mat-form-field class="w-full">
+                    <mat-label>Teléfono</mat-label>
+                    <input matInput formControlName="telefono">
+                </mat-form-field>
+            </div>
+
+            <!-- Estado y Técnico -->
+            <div class="grid grid-cols-2 gap-6 mt-8">
+                <mat-form-field class="w-full">
+                    <mat-label>Estado</mat-label>
+                    <mat-select formControlName="estado">
+                        <mat-option *ngFor="let estado of estados" [value]="estado">
+                            {{estado}}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field class="w-full">
+                    <mat-label>Técnico Registro</mat-label>
+                    <input matInput [value]="tecnicoRegistroNombre" readonly>
+                    <input type="hidden" [formControl]="cardForm.get('tecnicoRegistro')">
+                </mat-form-field>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="mt-8">
+                <mat-form-field class="w-full">
+                    <mat-label>Observaciones del Problema</mat-label>
+                    <textarea matInput formControlName="observacionesProblema" rows="4"></textarea>
+                </mat-form-field>
+            </div>
+
+            <!-- Informe -->
+            <div class="mt-8">
+                <mat-form-field class="w-full">
+                    <mat-label>Informe Técnico</mat-label>
+                    <textarea matInput formControlName="informe" rows="4"></textarea>
+                </mat-form-field>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end mt-8 space-x-4">
+                <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="closeDetails()">
+                    Cancelar
+                </button>
+                <button
+                    mat-flat-button
+                    [color]="'primary'"
+                    type="submit"
+                    [disabled]="cardForm.invalid">
+                    Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div> 

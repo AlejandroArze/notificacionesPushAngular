@@ -1,0 +1,146 @@
+<div class="w-full max-w-3xl">
+
+    <!-- Form -->
+    <form [formGroup]="securityForm" (ngSubmit)="changePassword()">
+
+        <!-- Section -->
+        <div class="w-full">
+            <div class="text-xl font-semibold mb-6">Cambiar contraseña</div>
+        </div>
+        <div class="grid sm:grid-cols-4 gap-6 w-full mt-8">
+            <!-- Current password -->
+            <div class="sm:col-span-4">
+                <mat-form-field
+                    class="w-full"
+                    [subscriptSizing]="'dynamic'">
+                    <mat-label>Contraseña actual</mat-label>
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:key'"
+                        matPrefix></mat-icon>
+                    <input
+                        [formControlName]="'currentPassword'"
+                        type="password"
+                        matInput
+                        #currentPassword
+                        [autocomplete]="'new-password'"
+                        (focus)="$event.target.autocomplete = 'current-password'">
+                    <mat-error *ngIf="securityForm.get('currentPassword').hasError('required')">
+                        La contraseña actual es requerida
+                    </mat-error>
+                    <mat-error *ngIf="securityForm.get('currentPassword').hasError('incorrect')">
+                        La contraseña actual es incorrecta
+                    </mat-error>
+                </mat-form-field>
+            </div>
+            <!-- New password -->
+            <div class="sm:col-span-4">
+                <mat-form-field
+                    class="w-full"
+                    [subscriptSizing]="'dynamic'">
+                    <mat-label>Nueva contraseña</mat-label>
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:key'"
+                        matPrefix></mat-icon>
+                    <input
+                        [formControlName]="'newPassword'"
+                        type="password"
+                        matInput
+                        #newPassword>
+                    <mat-error *ngIf="securityForm.get('newPassword').hasError('required')">
+                        La nueva contraseña es requerida
+                    </mat-error>
+                    <mat-error *ngIf="securityForm.get('newPassword').hasError('minlength')">
+                        La contraseña debe tener al menos 8 caracteres
+                    </mat-error>
+                    <mat-error *ngIf="securityForm.get('newPassword').hasError('pattern')">
+                        La contraseña debe incluir números, letras y caracteres especiales
+                    </mat-error>
+                    <mat-error *ngIf="securityForm.get('newPassword').hasError('noNumber')">
+                        La contraseña debe incluir al menos un número
+                    </mat-error>
+                    <mat-error *ngIf="securityForm.get('newPassword').hasError('noLetter')">
+                        La contraseña debe incluir al menos una letra
+                    </mat-error>
+                    <mat-error *ngIf="securityForm.get('newPassword').hasError('noSpecialChar')">
+                        La contraseña debe incluir al menos un carácter especial
+                    </mat-error>
+                </mat-form-field>
+                <!-- Mensajes dinámicos de validación -->
+                <div class="mt-1">
+                    <div class="flex flex-wrap gap-4">
+                        <div class="text-sm" [class.text-green-600]="passwordLength" [class.text-red-600]="!passwordLength">
+                            <mat-icon class="icon-size-4 align-middle" [svgIcon]="passwordLength ? 'heroicons_solid:check-circle' : 'heroicons_solid:x-circle'"></mat-icon>
+                            Mínimo 8 caracteres
+                        </div>
+                        <div class="text-sm" [class.text-green-600]="hasNumber" [class.text-red-600]="!hasNumber">
+                            <mat-icon class="icon-size-4 align-middle" [svgIcon]="hasNumber ? 'heroicons_solid:check-circle' : 'heroicons_solid:x-circle'"></mat-icon>
+                            Incluir número
+                        </div>
+                        <div class="text-sm" [class.text-green-600]="hasLetter" [class.text-red-600]="!hasLetter">
+                            <mat-icon class="icon-size-4 align-middle" [svgIcon]="hasLetter ? 'heroicons_solid:check-circle' : 'heroicons_solid:x-circle'"></mat-icon>
+                            Incluir letra
+                        </div>
+                        <div class="text-sm" [class.text-green-600]="hasSpecialChar" [class.text-red-600]="!hasSpecialChar">
+                            <mat-icon class="icon-size-4 align-middle" [svgIcon]="hasSpecialChar ? 'heroicons_solid:check-circle' : 'heroicons_solid:x-circle'"></mat-icon>
+                            Incluir carácter especial
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Confirm password -->
+            <div class="sm:col-span-4">
+                <mat-form-field
+                    class="w-full"
+                    [subscriptSizing]="'dynamic'">
+                    <mat-label>Confirmar nueva contraseña</mat-label>
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:key'"
+                        matPrefix></mat-icon>
+                    <input
+                        [formControlName]="'confirmPassword'"
+                        type="password"
+                        matInput
+                        #confirmPassword>
+                    <mat-error *ngIf="securityForm.get('confirmPassword').hasError('required')">
+                        Debe confirmar la nueva contraseña
+                    </mat-error>
+                </mat-form-field>
+                <!-- Mensaje de coincidencia de contraseñas -->
+                <div class="mt-1">
+                    <!-- Mensajes de requisitos -->
+                    <div class="flex flex-wrap gap-4">
+                        <div class="text-sm" [class.text-green-600]="!securityForm.hasError('mismatch') && securityForm.get('confirmPassword').value" 
+                             [class.text-red-600]="securityForm.hasError('mismatch') || !securityForm.get('confirmPassword').value">
+                            <mat-icon class="icon-size-4 align-middle" 
+                                     [svgIcon]="!securityForm.hasError('mismatch') && securityForm.get('confirmPassword').value ? 'heroicons_solid:check-circle' : 'heroicons_solid:x-circle'">
+                            </mat-icon>
+                            Contraseñas coinciden
+                        </div>
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end mt-8">
+            <button
+                mat-stroked-button
+                type="button">
+                Cancelar
+            </button>
+            <button
+                class="ml-4"
+                mat-flat-button
+                type="submit"
+                [color]="'primary'"
+                [disabled]="securityForm.invalid">
+                Guardar cambios
+            </button>
+        </div>
+    </form>
+
+</div>

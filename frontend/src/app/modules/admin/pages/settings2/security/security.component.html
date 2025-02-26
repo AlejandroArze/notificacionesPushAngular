@@ -1,0 +1,111 @@
+<div class="w-full max-w-3xl">
+
+    <!-- Form -->
+    <form [formGroup]="securityForm">
+
+        <!-- Section -->
+        <div class="w-full">
+            <div class="text-xl">Cambiar Contraseña</div>
+            <div class="text-secondary">¡Solo puedes cambiar tu contraseña dos veces en 24 horas! </div>
+        </div>
+        <div class="grid sm:grid-cols-4 gap-6 w-full mt-8">
+            <!-- Current password -->
+            <div class="sm:col-span-4">
+                <mat-form-field
+                    class="w-full"
+                    [subscriptSizing]="'dynamic'">
+                    <mat-label>Contraseña actual</mat-label>
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:key'"
+                        matPrefix></mat-icon>
+                    <input
+                        [formControlName]="'currentPassword'"
+                        type="password"
+                        matInput>
+                </mat-form-field>
+            </div>
+            <!-- New password -->
+            <div class="sm:col-span-4">
+                <mat-form-field
+                    class="w-full"
+                    [subscriptSizing]="'dynamic'">
+                    <mat-label>Nueva contraseña (</mat-label>
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:key'"
+                        matPrefix></mat-icon>
+                    <input
+                        [formControlName]="'newPassword'"
+                        type="password"
+                        matInput>
+                </mat-form-field>
+                <div class="mt-1 text-md text-hint">Mínimo 8 caracteres. Debe incluir números, letras y caracteres especiales.</div>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="my-10 border-t"></div>
+
+        <!-- Section -->
+        <div class="w-full">
+            <div class="text-xl">Preferencias de seguridad</div>
+            <div class="text-secondary">Mantén tu cuenta más segura con las siguientes preferencias. </div>
+        </div>
+        <div class="grid sm:grid-cols-4 gap-6 w-full mt-8">
+            <!-- 2-step auth -->
+            <div class="sm:col-span-4 flex items-center justify-between">
+                <div
+                    class="flex-auto cursor-pointer"
+                    (click)="twoStepToggle.toggle()">
+                    <div class="leading-6 font-medium">Habilitar autenticación en 2 pasos</div>
+                    <div class="text-md text-secondary">
+                        Te protege contra el robo de contraseñas solicitando un código de autenticación por SMS en cada inicio de sesión.
+                    </div>
+                </div>
+                <mat-slide-toggle
+                    class="ml-4"
+                    [color]="'primary'"
+                    [formControlName]="'twoStep'"
+                    #twoStepToggle>
+                </mat-slide-toggle>
+            </div>
+            <!-- Ask to change password -->
+            <div class="sm:col-span-4 flex items-center justify-between">
+                <div
+                    class="flex-auto cursor-pointer"
+                    (click)="askPasswordChangeToggle.toggle()">
+                    <div class="leading-6 font-medium">Solicitar cambiar la contraseña cada 6 meses</div>
+                    <div class="text-md text-secondary">
+                        Una forma simple pero efectiva de protegerse contra filtraciones de datos y robo de contraseñas.
+                    </div>
+                </div>
+                <mat-slide-toggle
+                    class="ml-4"
+                    [color]="'primary'"
+                    [formControlName]="'askPasswordChange'"
+                    #askPasswordChangeToggle>
+                </mat-slide-toggle>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="my-10 border-t"></div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end">
+            <button
+                mat-stroked-button
+                type="button">
+                Cancelar
+            </button>
+            <button
+                class="ml-4"
+                mat-flat-button
+                type="button"
+                [color]="'primary'">Guardar
+            </button>
+        </div>
+    </form>
+
+</div>

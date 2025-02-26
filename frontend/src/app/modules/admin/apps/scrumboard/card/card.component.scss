@@ -1,0 +1,15 @@
+.card-wrapper {
+    @apply p-4 bg-card rounded-lg shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 mb-3;
+    height: auto;
+
+    .problema-container {
+        p {
+            @apply text-gray-900 dark:text-gray-100;
+            overflow-wrap: break-word;
+        }
+    }
+
+    .estado-badge {
+        @apply px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap;
+    }
+} 

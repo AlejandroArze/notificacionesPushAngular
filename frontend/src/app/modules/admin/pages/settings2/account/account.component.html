@@ -1,0 +1,147 @@
+<div class="w-full max-w-3xl p-6 sm:p-8 bg-card shadow rounded-2xl">
+    <!-- Sección Principal -->
+    <div class="w-full mb-8">
+        <h2 class="text-3xl font-bold tracking-tight leading-none">Mi Cuenta</h2>
+        <p class="mt-2 text-secondary">Gestiona tu información personal y preferencias</p>
+    </div>
+
+    <!-- Formulario Principal -->
+    <form [formGroup]="accountForm" (ngSubmit)="onSubmit()" class="space-y-8">
+        <!-- Información Personal -->
+        <div class="space-y-6">
+            <!-- Foto de perfil -->
+            <div class="flex flex-col items-center space-y-4">
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
+                    <img *ngIf="imagePreview" [src]="imagePreview" 
+                         class="w-full h-full object-cover"
+                         alt="Foto de perfil">
+                    <div *ngIf="!imagePreview" 
+                         class="w-full h-full flex items-center justify-center bg-gray-100">
+                        <mat-icon class="text-4xl text-gray-400">person</mat-icon>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button type="button"
+                            mat-flat-button
+                            color="primary"
+                            (click)="fileInput.click()">
+                        <mat-icon class="mr-2">photo_camera</mat-icon>
+                        Cambiar foto
+                    </button>
+                    <input #fileInput
+                           type="file"
+                           accept="image/*"
+                           class="hidden"
+                           (change)="onFileSelected($event)">
+                </div>
+                <span *ngIf="imageName" class="text-sm text-gray-500">
+                    {{ imageName }}
+                </span>
+            </div>
+
+            <!-- Campos de información -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <mat-form-field appearance="outline">
+                    <mat-label>Nombres</mat-label>
+                    <input matInput formControlName="name">
+                    <mat-icon matPrefix>person</mat-icon>
+                    <mat-error *ngIf="accountForm.get('name').hasError('required')">
+                        Este campo es requerido
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Apellidos</mat-label>
+                    <input matInput formControlName="lastname">
+                    <mat-icon matPrefix>person</mat-icon>
+                    <mat-error *ngIf="accountForm.get('lastname').hasError('required')">
+                        Este campo es requerido
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Usuario</mat-label>
+                    <input matInput formControlName="username">
+                    <mat-icon matPrefix>account_circle</mat-icon>
+                    <mat-error *ngIf="accountForm.get('username').hasError('required')">
+                        Este campo es requerido
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Correo Electrónico</mat-label>
+                    <input matInput formControlName="email" type="email">
+                    <mat-icon matPrefix>email</mat-icon>
+                    <mat-error *ngIf="accountForm.get('email').hasError('required')">
+                        Este campo es requerido
+                    </mat-error>
+                    <mat-error *ngIf="accountForm.get('email').hasError('email')">
+                        Ingrese un correo electrónico válido
+                    </mat-error>
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- Sección de Contraseña -->
+        <div class="border-t pt-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-xl font-semibold">Cambiar Contraseña</h3>
+                    <p class="text-secondary">¡Solo puedes cambiar tu contraseña dos veces en 24 horas!</p>
+                </div>
+                <button type="button"
+                        mat-flat-button
+                        color="primary"
+                        (click)="togglePasswordSection()">
+                    {{ showPasswordSection ? 'Cancelar' : 'Cambiar contraseña' }}
+                </button>
+            </div>
+
+            <div *ngIf="showPasswordSection" class="space-y-4" [formGroup]="passwordForm">
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Contraseña actual</mat-label>
+                    <input matInput type="password" formControlName="currentPassword">
+                    <mat-icon matPrefix>lock</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Nueva contraseña</mat-label>
+                    <input matInput type="password" formControlName="newPassword">
+                    <mat-icon matPrefix>lock_reset</mat-icon>
+                    <mat-hint>Mínimo 8 caracteres. Debe incluir números, letras y caracteres especiales.</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Confirmar nueva contraseña</mat-label>
+                    <input matInput type="password" formControlName="confirmPassword">
+                    <mat-icon matPrefix>lock_reset</mat-icon>
+                </mat-form-field>
+
+                <div class="flex justify-end">
+                    <button type="button"
+                            mat-flat-button
+                            color="primary"
+                            [disabled]="passwordForm.invalid"
+                            (click)="changePassword()">
+                        Actualizar contraseña
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="flex justify-end space-x-3 border-t pt-6">
+            <button type="button"
+                    mat-stroked-button
+                    (click)="resetForm()">
+                Cancelar
+            </button>
+            <button type="submit"
+                    mat-flat-button
+                    color="primary"
+                    [disabled]="accountForm.invalid">
+                Guardar cambios
+            </button>
+        </div>
+    </form>
+</div>

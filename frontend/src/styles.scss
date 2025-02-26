@@ -1,0 +1,77 @@
+.custom-dialog {
+    .mat-mdc-dialog-container {
+        padding: 0;
+        border-radius: 1rem !important;
+        overflow: hidden;
+    }
+
+    .mat-mdc-dialog-content {
+        margin: 0;
+        padding: 0;
+        max-height: none;
+    }
+
+    // Estilos para modo oscuro
+    &.dark {
+        .sticky {
+            background-color: rgb(17, 24, 39) !important;
+            border-color: rgb(55, 65, 81) !important;
+        }
+    }
+
+    // Estilos para modo claro
+    .sticky {
+        background-color: rgb(249, 250, 251) !important;
+        border-color: rgb(229, 231, 235) !important;
+    }
+
+    // Asegurar que el diálogo tenga bordes redondeados
+    .mdc-dialog__surface {
+        border-radius: 1rem !important;
+    }
+
+    // Para el contenedor del diálogo de Material
+    .mat-mdc-dialog-surface {
+        border-radius: 1rem !important;
+    }
+
+    // Estilos para los botones
+    .mat-mdc-button-base {
+        border-radius: 9999px !important;
+    }
+
+    .mat-stroked-button {
+        border-radius: 9999px !important;
+    }
+
+    .mat-flat-button {
+        border-radius: 9999px !important;
+    }
+}
+
+// Estilos para las notificaciones
+.success-snackbar {
+    .mdc-snackbar__surface {
+        background: #4caf50 !important;
+        color: #FFFFFF !important;
+    }
+
+    .mat-mdc-snack-bar-actions {
+        .mdc-button__label {
+            color: #FFFFFF !important;
+        }
+    }
+}
+
+.error-snackbar {
+    .mdc-snackbar__surface {
+        background: #f44336 !important;
+        color: #FFFFFF !important;
+    }
+
+    .mat-mdc-snack-bar-actions {
+        .mdc-button__label {
+            color: #FFFFFF !important;
+        }
+    }
+} 

@@ -1,0 +1,19 @@
+{
+	"id": "n32c6psbngo",
+	"x": 0,
+	"y": 0,
+	"width": 20.359,
+	"height": 100,
+	"links": [],
+	"nodes": [],
+	"srcRootPath": "../",
+	"mapRootPath": "./",
+	"linkTags": [
+		{
+			"name": "autoMaintained",
+			"count": 9,
+			"appearance": {}
+		}
+	],
+	"defaultLinkAppearance": {}
+}

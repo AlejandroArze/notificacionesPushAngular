@@ -1,0 +1,135 @@
+<div class="w-full max-w-3xl">
+    <!-- Vista principal del equipo -->
+    <ng-container *ngIf="currentView === 'team'">
+        <div class="w-full">
+            <!-- Header -->
+            <div class="text-secondary">
+                <div class="flex items-center justify-between">
+                    <mat-label class="text-lg font-medium">Miembros del equipo</mat-label>
+                    <button
+                        mat-flat-button
+                        [color]="'primary'"
+                        (click)="showCreateAccount()">
+                        <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                        <span class="ml-2">Agregar miembro</span>
+                    </button>
+                </div>
+
+                <!-- Barra de búsqueda -->
+                <mat-form-field
+                    class="w-full mt-4"
+                    [subscriptSizing]="'dynamic'">
+                    <mat-label>Buscar miembros del equipo</mat-label>
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:user'"
+                        matPrefix></mat-icon>
+                    <input
+                        matInput
+                        [(ngModel)]="searchTerm"
+                        [placeholder]="'Nombre de usuario/ Correo'"
+                        (input)="searchMembers()">
+                    <button
+                        mat-icon-button
+                        matSuffix
+                        (click)="reloadUsers()">
+                        <mat-icon
+                            class="icon-size-6"
+                            [svgIcon]="'heroicons_solid:arrow-path'"></mat-icon>
+                    </button>
+                </mat-form-field>
+            </div>
+
+            <!-- Lista de miembros -->
+            <div class="divide-y border-t">
+                <ng-container *ngFor="let member of members; trackBy: trackByFn">
+                    <div class="flex flex-col sm:flex-row sm:items-center py-6">
+                        <!-- Avatar y datos básicos -->
+                        <div class="flex items-center">
+                            <div class="flex flex-0 items-center justify-center w-10 h-10 rounded-full overflow-hidden">
+                                <ng-container *ngIf="member.avatar">
+                                    <img
+                                        class="object-cover w-full h-full"
+                                        [src]="member.avatar"
+                                        alt="Contact avatar"/>
+                                </ng-container>
+                                <ng-container *ngIf="!member.avatar">
+                                    <div class="flex items-center justify-center w-full h-full rounded-full text-lg uppercase bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        {{member.name.charAt(0)}}
+                                    </div>
+                                </ng-container>
+                            </div>
+                            <div class="ml-4">
+                                <div class="font-medium">{{member.name}}</div>
+                                <div class="text-secondary">{{member.email}}</div>
+                            </div>
+                        </div>
+
+                        <!-- Rol y acciones -->
+                        <div class="flex items-center mt-4 sm:mt-0 sm:ml-auto">
+                            <!-- Rol -->
+                            <div class="order-2 sm:order-1 ml-4 sm:ml-0">
+                                <div class="fuse-mat-dense w-32 px-4 py-2 rounded-lg border bg-gray-100 dark:bg-gray-700">
+                                    <span class="text-sm">{{ member.role }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Botones de acción -->
+                            <div class="order-1 sm:order-2 sm:ml-3 flex">
+                                <!-- Editar -->
+                                <button
+                                    mat-icon-button
+                                    (click)="showEditAccount(member.id)">
+                                    <mat-icon
+                                        class="text-hint"
+                                        [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                                </button>
+                                <!-- Eliminar -->
+                                <button
+                                    mat-icon-button
+                                    (click)="toggleUserStatus(member)">
+                                    <mat-icon
+                                        class="text-hint"
+                                        [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </ng-container>
+
+    <!-- Vista de crear cuenta -->
+    <ng-container *ngIf="currentView === 'create'">
+        <div class="flex items-center mb-4">
+            <button
+                mat-icon-button
+                (click)="returnToTeam()">
+                <mat-icon [svgIcon]="'heroicons_outline:arrow-left'"></mat-icon>
+            </button>
+            <span class="ml-2 text-2xl font-semibold">Crear nueva cuenta</span>
+        </div>
+        <create-account
+            (accountCreated)="returnToTeam()"
+            (cancelled)="returnToTeam()">
+        </create-account>
+    </ng-container>
+
+    <!-- Vista de editar cuenta -->
+    <ng-container *ngIf="currentView === 'edit'">
+        <div class="flex items-center mb-4">
+            <button
+                mat-icon-button
+                (click)="returnToTeam()">
+                <mat-icon [svgIcon]="'heroicons_outline:arrow-left'"></mat-icon>
+            </button>
+            <span class="ml-2 text-2xl font-semibold">Editar cuenta</span>
+        </div>
+        <edit-account
+            [userId]="selectedUserId"
+            (accountUpdated)="returnToTeam()"
+            (cancelled)="returnToTeam()">
+        </edit-account>
+    </ng-container>
+</div>

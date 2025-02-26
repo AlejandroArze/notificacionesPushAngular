@@ -1,0 +1,152 @@
+{
+	"id": "d09lre50pf",
+	"x": 42,
+	"y": 12,
+	"width": 54,
+	"height": 86,
+	"links": [
+		{
+			"id": "link1envo3281ug",
+			"from": {
+				"path": [
+					{
+						"boxId": "gai14gdp60g",
+						"boxName": "inventory.component.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"to": {
+				"path": [
+					{
+						"boxId": "c25htj8eir",
+						"boxName": "inventory.component.html",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"tags": [
+				"autoMaintained"
+			]
+		},
+		{
+			"id": "linkc0p3icu6l3g",
+			"from": {
+				"path": [
+					{
+						"boxId": "ph546km9pf8",
+						"boxName": "inventory.service.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"to": {
+				"path": [
+					{
+						"boxId": "8lclc5re82",
+						"boxName": "inventory.types.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"tags": [
+				"autoMaintained"
+			]
+		},
+		{
+			"id": "linkpdrrtksmgp",
+			"from": {
+				"path": [
+					{
+						"boxId": "ph546km9pf8",
+						"boxName": "inventory.service.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"to": {
+				"path": [
+					{
+						"boxId": "8lclc5re82",
+						"boxName": "inventory.types.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"tags": [
+				"autoMaintained"
+			]
+		},
+		{
+			"id": "linkdak4r3a8ak",
+			"from": {
+				"path": [
+					{
+						"boxId": "fak4jprm61o",
+						"boxName": "list",
+						"x": 74,
+						"y": 26
+					},
+					{
+						"boxId": "rnb6vra0hro",
+						"boxName": "inventory.component.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"to": {
+				"path": [
+					{
+						"boxId": "ph546km9pf8",
+						"boxName": "inventory.service.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"tags": [
+				"autoMaintained"
+			]
+		},
+		{
+			"id": "link2s72s0c0d08",
+			"from": {
+				"path": [
+					{
+						"boxId": "fak4jprm61o",
+						"boxName": "list",
+						"x": 74,
+						"y": 26
+					},
+					{
+						"boxId": "rnb6vra0hro",
+						"boxName": "inventory.component.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"to": {
+				"path": [
+					{
+						"boxId": "8lclc5re82",
+						"boxName": "inventory.types.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"tags": [
+				"autoMaintained"
+			]
+		}
+	],
+	"nodes": []
+}

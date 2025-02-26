@@ -1,0 +1,327 @@
+<div class="flex flex-col flex-auto w-full">
+    <div class="flex flex-wrap w-full max-w-screen-xl mx-auto p-6 md:p-8">
+
+        <!-- Filtros y Botones -->
+        <div class="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Fecha Inicio y Fin con botones rápidos -->
+            <div class="md:col-span-2">
+                <div class="flex flex-col">
+                    <!-- Campos de fecha -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Fecha Inicio -->
+                        <div class="flex flex-col">
+                            <label class="text-sm mb-2">Fecha Inicio</label>
+                            <mat-form-field class="w-full">
+                                <input matInput [matDatepicker]="pickerInicio" 
+                                       [(ngModel)]="fechaInicioDisplay"
+                                       (dateChange)="onFechaInicioChange($event)"
+                                       [value]="fechaInicioDisplay"
+                                       [placeholder]="formatDisplayDate(fechaInicioDisplay)">
+                                <mat-datepicker-toggle matIconSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+                                <mat-datepicker #pickerInicio></mat-datepicker>
+                            </mat-form-field>
+                        </div>
+
+                        <!-- Fecha Fin -->
+                        <div class="flex flex-col">
+                            <label class="text-sm mb-2">Fecha Fin</label>
+                            <mat-form-field class="w-full">
+                                <input matInput [matDatepicker]="pickerFin" 
+                                       [(ngModel)]="fechaFinDisplay"
+                                       (dateChange)="onFechaFinChange($event)"
+                                       [value]="fechaFinDisplay"
+                                       [placeholder]="formatDisplayDate(fechaFinDisplay)">
+                                <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
+                                <mat-datepicker #pickerFin></mat-datepicker>
+                            </mat-form-field>
+                        </div>
+                    </div>
+
+                    <!-- Botones de filtro rápido -->
+                    <div class="flex gap-1 -mt-3">
+                        <button 
+                            mat-stroked-button
+                            [color]="selectedDateFilter === 'day' ? 'accent' : 'primary'"
+                            [ngClass]="{'dark:text-white': selectedDateFilter === 'day'}"
+                            (click)="setUltimoDia()">
+                            Último día
+                        </button>
+                        
+                        <button 
+                            mat-stroked-button
+                            [color]="selectedDateFilter === 'week' ? 'accent' : 'primary'"
+                            [ngClass]="{'dark:text-white': selectedDateFilter === 'week'}"
+                            (click)="setUltimos7Dias()">
+                            Últimos 7 días
+                        </button>
+                        
+                        <button 
+                            mat-stroked-button
+                            [color]="selectedDateFilter === 'month' ? 'accent' : 'primary'"
+                            [ngClass]="{'dark:text-white': selectedDateFilter === 'month'}"
+                            (click)="setUltimoMes()">
+                            Último mes
+                        </button>
+                        
+                        <button 
+                            mat-stroked-button
+                            [color]="selectedDateFilter === 'year' ? 'accent' : 'primary'"
+                            [ngClass]="{'dark:text-white': selectedDateFilter === 'year'}"
+                            (click)="setUltimoAnio()">
+                            Último año
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tipo de servicio y Técnico con botones de acción -->
+            <div class="flex flex-col">
+                <label class="text-sm mb-2">Tipo de servicio</label>
+                <mat-form-field class="w-full">
+                    <mat-select [(ngModel)]="tipoServicio">
+                        <mat-option value="TODOS">TODOS</mat-option>
+                        <mat-option value="EN LABORATORIO">EN LABORATORIO</mat-option>
+                        <mat-option value="ASISTENCIA EN SITIO">ASISTENCIA EN SITIO</mat-option>
+                        <mat-option value="ASISTENCIA REMOTA">ASISTENCIA REMOTA</mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="flex flex-col">
+                <label class="text-sm mb-2">Técnico</label>
+                <mat-form-field class="w-full">
+                    <mat-select [(ngModel)]="tecnico">
+                        
+                        <mat-option *ngFor="let tec of tecnicos" [value]="tec.id">
+                            {{tec.nombre}}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="w-full flex justify-end gap-4 mt-2 mb-8">
+            <button mat-raised-button color="primary" (click)="consultar()">
+                CONSULTAR
+            </button>
+            <button mat-raised-button color="accent" (click)="generarPDF()" [disabled]="!dataSource.data.length">
+                <mat-icon class="mr-2">picture_as_pdf</mat-icon>
+                GENERAR REPORTE PDF
+            </button>
+            <button mat-raised-button color="accent" (click)="imprimirPDF()" [disabled]="!dataSource.data.length">
+                <mat-icon class="mr-2">print</mat-icon>
+                IMPRIMIR
+            </button>
+        </div>
+
+        <!-- Métricas -->
+        <div class="w-full grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <!-- Resumen -->
+            <div class="flex flex-col bg-card shadow rounded-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div class="text-lg font-medium">Resumen</div>
+                    <mat-icon class="text-hint">more_vert</mat-icon>
+                </div>
+                <div class="flex flex-col mt-4">
+                    <div class="text-7xl font-bold text-blue-500">{{metrics?.resumen.total_servicios || 0}}</div>
+                    <div class="text-lg text-secondary">Total Servicios</div>
+                    <div class="mt-4 text-secondary">
+                        Completados: {{metrics?.resumen.servicios_terminados || 0}}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Distribución de Tipos -->
+            <div class="flex flex-col bg-card shadow rounded-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div class="text-lg font-medium">Distribución de Servicios</div>
+                    <mat-icon class="text-hint">more_vert</mat-icon>
+                </div>
+                <div class="flex-auto">
+                    <canvas #distribucionChart></canvas>
+                </div>
+            </div>
+
+            <!-- Rendimiento Técnicos -->
+            <div class="flex flex-col bg-card shadow rounded-lg p-6 relative">
+                <div class="flex items-center justify-between">
+                    <div class="text-lg font-medium">Rendimiento Técnicos</div>
+                    <mat-icon class="text-hint">more_vert</mat-icon>
+                </div>
+                <!-- Ranking de Técnicos -->
+                <div class="flex-auto overflow-y-auto max-h-[400px] mt-4">
+                    <div class="grid gap-2">
+                        <div *ngFor="let tecnico of rendimientoTecnicos; let i = index" 
+                             class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 relative"
+                             (mouseenter)="showTooltip($event, i)"
+                             (mouseleave)="hideTooltip()">
+                            <!-- Medalla o Posición -->
+                            <div class="flex-none w-8 text-xl font-bold">
+                                <span *ngIf="i === 0">🥇</span>
+                                <span *ngIf="i === 1">🥈</span>
+                                <span *ngIf="i === 2">🥉</span>
+                                <span *ngIf="i > 2">{{i + 1}}</span>
+                            </div>
+                            <!-- Foto de perfil -->
+                            <div class="flex-none w-10 h-10 rounded-full overflow-hidden mr-3">
+                                <img
+                                    class="w-full h-full object-cover"
+                                    [src]="getImageUrl(tecnico.tecnico_id)"
+                                    [alt]="tecnico.tecnico"
+                                    (error)="$event.target.parentElement.innerHTML = '<div class=\'flex items-center justify-center w-full h-full rounded-full text-lg uppercase bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200\'>' + tecnico.tecnico.charAt(0) + '</div>'"/>
+                            </div>
+                            <!-- Información del técnico -->
+                            <div class="flex-grow">
+                                <div class="font-medium">{{tecnico.tecnico}}</div>
+                            </div>
+                            <!-- Puntuación -->
+                            <div class="flex-none text-right">
+                                <div class="font-medium text-blue-600 dark:text-blue-400">
+                                    {{tecnico.completados}} servicios
+                                </div>
+                            </div>
+                            
+                            <!-- Tooltip detallado -->
+                            <div *ngIf="selectedTecnicoIndex === i"
+                                 class="fixed bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl z-[9999] w-72 transform -translate-x-1/2 left-1/2"
+                                 style="top: 50%; transform: translate(-50%, -50%);">
+                                <div class="text-sm">
+                                    <div class="font-medium mb-2 text-center">{{tecnico.tecnico}}</div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="text-secondary">Total servicios:</div>
+                                        <div class="text-right font-bold">{{tecnico.total_servicios}}</div>
+                                        <div class="text-secondary">Completados:</div>
+                                        <div class="text-right font-bold">{{tecnico.completados}}</div>
+                                        <div class="text-secondary">Tiempo promedio:</div>
+                                        <div class="text-right font-bold">{{formatTiempoResolucionSimple(tecnico)}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tiempos de Resolución -->
+            <div class="flex flex-col bg-card shadow rounded-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div class="text-lg font-medium">Tiempos de Resolución</div>
+                    <mat-icon class="text-hint">more_vert</mat-icon>
+                </div>
+                <div class="grid grid-cols-1 gap-4 mt-4">
+                    <!-- EN LABORATORIO - Principal y centrado -->
+                    <div class="flex flex-col bg-[#f0fdf4] dark:bg-[#293445] shadow rounded-lg p-4">
+                        <div class="flex flex-col text-center">
+                            <div class="text-5xl font-bold text-green-500">
+                                {{formatTiempoResolucion(getMetricByTipo('EN LABORATORIO')).valor}}
+                            </div>
+                            <div class="text-2xl text-green-500">
+                                {{formatTiempoResolucion(getMetricByTipo('EN LABORATORIO')).unidad}}
+                            </div>
+                        </div>
+                        <div class="text-lg text-secondary mt-2 text-center">EN LABORATORIO</div>
+                        <div class="mt-2 text-secondary text-center">
+                            Total: {{getMetricByTipo('EN LABORATORIO')?.total_servicios || 0}}
+                        </div>
+                    </div>
+                    <!-- REMOTA y otros - Más pequeños abajo -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex flex-col bg-[#fffbeb] dark:bg-[#293445] shadow rounded-lg p-4">
+                            <div class="flex flex-col text-center">
+                                <div class="text-4xl font-bold text-amber-500">
+                                    {{formatTiempoResolucion(getMetricByTipo('REMOTA')).valor}}
+                                </div>
+                                <div class="text-xl text-amber-500">
+                                    {{formatTiempoResolucion(getMetricByTipo('REMOTA')).unidad}}
+                                </div>
+                            </div>
+                            <div class="text-lg text-secondary mt-2 text-center">REMOTA</div>
+                            <div class="mt-2 text-secondary text-center">
+                                Total: {{getMetricByTipo('REMOTA')?.total_servicios || 0}}
+                            </div>
+                        </div>
+                        <div class="flex flex-col bg-[#fef2f2] dark:bg-[#293445] shadow rounded-lg p-4">
+                            <div class="flex flex-col text-center">
+                                <div class="text-4xl font-bold text-red-500">
+                                    {{formatTiempoResolucion(getMetricByTipo('ASISTENCIA')).valor}}
+                                </div>
+                                <div class="text-xl text-red-500">
+                                    {{formatTiempoResolucion(getMetricByTipo('ASISTENCIA')).unidad}}
+                                </div>
+                            </div>
+                            <div class="text-lg text-secondary mt-2 text-center">ASISTENCIA</div>
+                            <div class="mt-2 text-secondary text-center">
+                                Total: {{getMetricByTipo('ASISTENCIA')?.total_servicios || 0}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de resultados -->
+        <div class="w-full bg-card shadow rounded-2xl overflow-hidden">
+            <table mat-table [dataSource]="dataSource" class="w-full">
+                
+                <!-- Index Column -->
+                <ng-container matColumnDef="index">
+                    <th mat-header-cell *matHeaderCellDef> # </th>
+                    <td mat-cell *matCellDef="let row; let i = index"> 
+                        {{paginator.pageIndex * paginator.pageSize + i + 1}} 
+                    </td>
+                </ng-container>
+
+                <!-- Número Column -->
+                <ng-container matColumnDef="numero">
+                    <th mat-header-cell *matHeaderCellDef> Número </th>
+                    <td mat-cell *matCellDef="let row"> {{row.numero}} </td>
+                </ng-container>
+
+                <!-- Tipo Servicio Column -->
+                <ng-container matColumnDef="tipoServicio">
+                    <th mat-header-cell *matHeaderCellDef> Tipo de Servicio </th>
+                    <td mat-cell *matCellDef="let row"> {{row.tipo}} </td>
+                </ng-container>
+
+                <!-- Técnico Asignado Column -->
+                <ng-container matColumnDef="tecnicoAsignado">
+                    <th mat-header-cell *matHeaderCellDef> Técnico Asignado </th>
+                    <td mat-cell *matCellDef="let row"> {{getTecnicoNombre(row.tecnicoAsignado)}} </td>
+                </ng-container>
+
+                <!-- Fecha Inicio Column -->
+                <ng-container matColumnDef="fechaInicio">
+                    <th mat-header-cell *matHeaderCellDef> Fecha Inicio </th>
+                    <td mat-cell *matCellDef="let row"> {{row.fechaInicio | date:'dd/MM/yyyy'}} </td>
+                </ng-container>
+
+                <!-- Fecha Terminado Column -->
+                <ng-container matColumnDef="fechaTerminado">
+                    <th mat-header-cell *matHeaderCellDef> Fecha Terminado </th>
+                    <td mat-cell *matCellDef="let row"> {{row.fechaTerminado | date:'dd/MM/yyyy'}} </td>
+                </ng-container>
+
+                <!-- Solicitante Column -->
+                <ng-container matColumnDef="solicitante">
+                    <th mat-header-cell *matHeaderCellDef> Solicitante </th>
+                    <td mat-cell *matCellDef="let row"> {{row.nombreSolicitante}} </td>
+                </ng-container>
+
+                <!-- Header and Row Definitions -->
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+            
+            <!-- Paginador -->
+            <mat-paginator
+                [length]="totalItems"
+                [pageSize]="pageSize"
+                [pageSizeOptions]="[5, 10, 25, 100]"
+                [showFirstLastButtons]="true"
+                aria-label="Seleccionar página">
+            </mat-paginator>
+        </div>
+
+    </div>
+</div>

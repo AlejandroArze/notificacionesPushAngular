@@ -1,0 +1,108 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Main -->
+    <div class="flex flex-col flex-auto items-center p-6 sm:p-10">
+        <div class="flex flex-col w-full max-w-4xl">
+            <div class="-ml-4 sm:mt-8">
+                <a
+                    mat-button
+                    [routerLink]="['../']"
+                    [color]="'primary'">
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-long-left'"></mat-icon>
+                    <span class="ml-2">Volver al Centro de Ayuda</span>
+                </a>
+            </div>
+            <div class="mt-2 text-4xl sm:text-7xl font-extrabold tracking-tight leading-tight">
+                Contactar soporte
+            </div>
+            <!-- Form -->
+            <div class="mt-8 sm:mt-12 p-6 pb-7 sm:p-10 sm:pb-7 shadow rounded-2xl bg-card">
+                <!-- Alert -->
+                <fuse-alert
+                    class="mb-8"
+                    *ngIf="alert"
+                    [type]="alert.type"
+                    [showIcon]="false">
+                    {{alert.message}}
+                </fuse-alert>
+                <form
+                    class="space-y-3"
+                    [formGroup]="supportForm"
+                    #supportNgForm="ngForm">
+                    <div class="mb-6">
+                        <div class="text-2xl font-bold tracking-tight">Enviar tu solicitud</div>
+                        <div class="text-secondary">Tu solicitud será procesada y nuestro equipo de soporte se pondrá en contacto contigo en 24 horas.</div>
+                    </div>
+                    <!-- Name -->
+                    <mat-form-field class="w-full">
+                        <input
+                            matInput
+                            [formControlName]="'name'"
+                            [required]="true">
+                        <mat-label>Nombre</mat-label>
+                        <mat-error *ngIf="supportForm.get('name').hasError('required')">
+                            Requerido
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Email -->
+                    <mat-form-field class="w-full">
+                        <input
+                            type="email"
+                            matInput
+                            [formControlName]="'email'"
+                            [required]="true">
+                        <mat-label>Correo electrónico</mat-label>
+                        <mat-error *ngIf="supportForm.get('email').hasError('required')">
+                            Requerido
+                        </mat-error>
+                        <mat-error *ngIf="supportForm.get('email').hasError('email')">
+                            Introduce una dirección de correo válida
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Subject -->
+                    <mat-form-field class="w-full">
+                        <input
+                            matInput
+                            [formControlName]="'subject'"
+                            [required]="true">
+                        <mat-label>Asunto</mat-label>
+                        <mat-error *ngIf="supportForm.get('subject').hasError('required')">
+                            Requerido
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Message -->
+                    <mat-form-field class="w-full">
+                        <textarea
+                            matInput
+                            [formControlName]="'message'"
+                            [required]="true"
+                            [rows]="5"
+                            cdkTextareaAutosize></textarea>
+                        <mat-label>Mensaje</mat-label>
+                        <mat-error *ngIf="supportForm.get('message').hasError('required')">
+                            Requerido
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Actions -->
+                    <div class="flex items-center justify-end">
+                        <button
+                            mat-button
+                            [color]="'accent'"
+                            [disabled]="supportForm.pristine || supportForm.untouched"
+                            (click)="clearForm()">
+                            Limpiar
+                        </button>
+                        <button
+                            class="ml-2"
+                            mat-flat-button
+                            [color]="'primary'"
+                            [disabled]="supportForm.pristine || supportForm.invalid"
+                            (click)="sendForm()">
+                            Enviar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

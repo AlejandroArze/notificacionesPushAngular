@@ -1,0 +1,336 @@
+<div class="flex flex-auto">
+    <form class="flex flex-col flex-auto p-6 pt-10 sm:p-8 sm:pt-10 overflow-y-auto"
+        [formGroup]="servicioForm"
+        (keydown.enter)="$event.target.tagName !== 'TEXTAREA' ? $event.preventDefault() : null">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+            <div class="text-2xl font-semibold">Detalles</div>
+            <div class="flex items-center justify-end">
+                <!-- Botón actualizar -->
+                <div class="flex items-center">
+                    <button
+                        mat-flat-button
+                        [color]="'primary'"
+                        (click)="saveServicio()">
+                        Actualizar
+                    </button>
+
+                    <!-- Botón PDF -->
+                    <button
+                        mat-mini-fab
+                        [color]="'accent'"
+                        class="ml-2"
+                        matTooltip="Generar PDF"
+                        (click)="generarPDF()">
+                        <mat-icon class="icon-size-5">picture_as_pdf</mat-icon>
+                    </button>
+
+                    <!-- Botón Imprimir -->
+                    <button
+                        mat-mini-fab
+                        [color]="'accent'"
+                        class="ml-2"
+                        matTooltip="Imprimir"
+                        (click)="imprimirPDF()">
+                        <mat-icon class="icon-size-5">print</mat-icon>
+                    </button>
+                </div>
+                <!-- Botón eliminar -->
+                <button
+                    mat-icon-button
+                    class="mr-2"
+                    (click)="deleteTask()"
+                    [matTooltip]="'Eliminar servicio'">
+                    <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                </button>
+                <!-- Botón cerrar -->
+                <a mat-icon-button [routerLink]="['../']">
+                    <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+                </a>
+            </div>
+        </div>
+
+        <mat-divider class="mt-6 mb-8"></mat-divider>
+
+        <!-- Primera fila -->
+        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full mt-2">
+            <mat-label>Nombre Solicitante</mat-label>
+            <textarea matInput
+                      [formControlName]="'nombreSolicitante'"
+                      [matAutocomplete]="autoEmpleados"
+                      (input)="onInputChange($event)"
+                      cdkTextareaAutosize
+                      cdkAutosizeMinRows="1"
+                      cdkAutosizeMaxRows="3"
+                      placeholder="Buscar empleado">
+            </textarea>
+            <mat-autocomplete #autoEmpleados="matAutocomplete"
+                             [displayWith]="displayFnEmpleado"
+                             (optionSelected)="onEmpleadoSelected($event)">
+                <mat-option *ngFor="let empleado of filteredEmpleados"
+                           [value]="empleado">
+                    {{empleado.nombre_completo}}
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <!-- Segunda fila -->
+        <div class="grid grid-cols-3 gap-4 mb-4 mt-2">
+            <mat-form-field [subscriptSizing]="'dynamic'" class="w-full">
+                <mat-label>Carnet Solicitante</mat-label>
+                <div class="flex">
+                    <input matInput
+                           [formControlName]="'ciSolicitante'"
+                           placeholder="Ingrese CI"
+                           class="flex-grow">
+                    <button mat-icon-button
+                            type="button"
+                            (click)="buscarPorCI()"
+                            matTooltip="Buscar por CI"
+                            class="ml-0 w-6 min-w-6">
+                        <mat-icon class="icon-size-4">search</mat-icon>
+                    </button>
+                </div>
+            </mat-form-field>
+
+            <mat-form-field [subscriptSizing]="'dynamic'">
+                <mat-label>Cargo</mat-label>
+                <textarea matInput 
+                          [formControlName]="'cargoSolicitante'"
+                          (input)="onInputChange($event)"
+                          cdkTextareaAutosize
+                          cdkAutosizeMinRows="1"
+                          cdkAutosizeMaxRows="3">
+                </textarea>
+            </mat-form-field>
+
+            <mat-form-field [subscriptSizing]="'dynamic'">
+                <mat-label>Tipo Solicitante</mat-label>
+                <textarea matInput 
+                          [formControlName]="'tipoSolicitante'"
+                          (input)="onInputChange($event)"
+                          cdkTextareaAutosize
+                          cdkAutosizeMinRows="1"
+                          cdkAutosizeMaxRows="3">
+                </textarea>
+            </mat-form-field>
+        </div>
+
+        <!-- Tercera fila -->
+        <div class="grid grid-cols-2 gap-4 mb-4 mt-2">
+            <mat-form-field [subscriptSizing]="'dynamic'">
+                <mat-label>Oficina</mat-label>
+                <textarea matInput 
+                          [formControlName]="'oficinaSolicitante'"
+                          (input)="onInputChange($event)"
+                          cdkTextareaAutosize
+                          cdkAutosizeMinRows="1"
+                          cdkAutosizeMaxRows="3">
+                </textarea>
+            </mat-form-field>
+
+            <mat-form-field [subscriptSizing]="'dynamic'">
+                <mat-label>Teléfono</mat-label>
+                <input matInput [formControlName]="'telefonoSolicitante'" (input)="onInputChange($event)">
+            </mat-form-field>
+        </div>
+
+        <!-- Cuarta fila -->
+        <div class="grid grid-cols-2 gap-4 mb-4 mt-2">
+            <mat-form-field [subscriptSizing]="'dynamic'">
+                <mat-label>Tipo de servicio</mat-label>
+                <mat-select [formControlName]="'tipo'">
+                    <mat-option value="EN LABORATORIO">EN LABORATORIO</mat-option>                    
+                    <mat-option value="ASISTENCIA">ASISTENCIA</mat-option>
+                    <mat-option value="REMOTA">REMOTA</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field [subscriptSizing]="'dynamic'">
+                <mat-label>Estado</mat-label>
+                <input matInput [formControlName]="'estado'" readonly>
+            </mat-form-field>
+
+            
+        </div>
+
+        <!-- Quinta fila -->
+        <div class="grid grid-cols-2 gap-4 mb-4 mt-2">
+            <mat-form-field [subscriptSizing]="'dynamic'">
+                <mat-label>Técnico del Registro</mat-label>
+                <input matInput [formControlName]="'tecnicoRegistroString'" readonly>
+            </mat-form-field>
+
+            <mat-form-field [subscriptSizing]="'dynamic'">
+                <mat-label>Fecha Registro</mat-label>
+                <input matInput [formControlName]="'fechaRegistro'" [matDatepicker]="pickerRegistro" readonly>
+                <mat-datepicker-toggle matIconSuffix [for]="pickerRegistro">
+                    <mat-icon matDatepickerToggleIcon></mat-icon>
+                </mat-datepicker-toggle>
+                <mat-datepicker #pickerRegistro></mat-datepicker>
+            </mat-form-field>
+        </div>
+
+        <!-- Sexta fila -->
+        <div class="grid grid-cols-2 gap-4 mb-4 mt-2">
+            <mat-form-field [subscriptSizing]="'dynamic'">
+                <mat-label>Fecha Inicio</mat-label>
+                <input matInput [formControlName]="'fechaInicio'" [matDatepicker]="pickerInicio" readonly>
+                <mat-datepicker-toggle matIconSuffix [for]="pickerInicio">
+                    <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
+                </mat-datepicker-toggle>
+                <mat-datepicker #pickerInicio></mat-datepicker>
+            </mat-form-field>
+            
+            <mat-form-field [subscriptSizing]="'dynamic'">
+                <mat-label>Fecha Terminado</mat-label>
+                <input matInput [formControlName]="'fechaTerminado'" [matDatepicker]="pickerTerminado" readonly>
+                <mat-datepicker-toggle matIconSuffix [for]="pickerTerminado">
+                    <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
+                </mat-datepicker-toggle>
+                <mat-datepicker #pickerTerminado></mat-datepicker>
+            </mat-form-field>
+            <div></div> <!-- Espacio vacío para mantener la alineación -->
+        </div>
+
+        <!-- Campos de texto -->
+        <div class="flex flex-col gap-4 mb-4">
+            <mat-form-field class="full-width">
+                <mat-label>Problema</mat-label>
+                <textarea matInput [formControlName]="'problema'" rows="5" cdkTextareaAutosize></textarea>
+            </mat-form-field>
+
+            <mat-form-field class="full-width">
+                <mat-label>Observaciones</mat-label>
+                <textarea matInput [formControlName]="'observaciones'" rows="5" cdkTextareaAutosize></textarea>
+            </mat-form-field>
+
+            <mat-form-field class="full-width">
+                <mat-label>Informe</mat-label>
+                <textarea matInput [formControlName]="'informe'" rows="5" cdkTextareaAutosize></textarea>
+            </mat-form-field>
+        </div>
+        <!-- Técnico Asignado -->
+        <div class="relative w-full">
+            <mat-form-field class="w-full">
+                <mat-label>Técnico Asignado</mat-label>
+                <input matInput
+                       [value]="getSelectedTecnicoDisplay()"
+                       (input)="onSearchChange($event.target.value)"
+                       (focus)="showTecnicosDropdown = canSelectTecnico"
+                       [placeholder]="'Buscar técnico...'"
+                       [readonly]="!canSelectTecnico">
+                <mat-icon matSuffix class="icon-size-5" *ngIf="canSelectTecnico">search</mat-icon>
+            </mat-form-field>
+
+            <!-- Mensaje de estado del técnico -->
+            <div *ngIf="getTecnicoEstado() as estado" 
+                 [class]="estado.color"
+                 class="text-sm mt-1 ml-1">
+                {{ estado.message }}
+            </div>
+
+            <!-- Dropdown para técnicos -->
+            <div *ngIf="showTecnicosDropdown && filteredTecnicos.length > 0 && canSelectTecnico"
+                 class="tecnicos-dropdown dropdown-container absolute left-0 right-0 z-[9999] mt-1 shadow-lg overflow-hidden border rounded-md bg-white dark:bg-gray-800"
+                 style="backdrop-filter: none; -webkit-backdrop-filter: none;">
+                <div class="max-h-64 overflow-y-auto">
+                    <div *ngFor="let tecnico of filteredTecnicos"
+                         class="px-4 py-2 cursor-pointer transition-colors duration-150 hover:bg-gray-100 dark:hover:bg-gray-700"
+                         [ngClass]="{
+                             'text-gray-900 dark:text-gray-100': true,
+                             'bg-white dark:bg-gray-800': true
+                         }"
+                         (click)="onTecnicoFilterChange(tecnico.id); showTecnicosDropdown = false">
+                        {{ tecnico.nombre }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Equipo y botón buscar -->
+        <div class="flex items-end gap-4 mt-4">
+            <!-- Campos ocultos para mantener los valores -->
+            <input type="hidden" [formControlName]="'equipos_id'">
+            
+            <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
+                <mat-label>Equipo</mat-label>
+                <input matInput
+                    [formControl]="searchEquipoCtrl"
+                    [matAutocomplete]="autoEquipo"
+                    (focus)="onFocus()"
+                    [errorStateMatcher]="matcher"
+                    placeholder="Buscar por código">
+                <mat-error *ngIf="!isOptionSelected">
+                    Debe seleccionar un equipo de la lista
+                </mat-error>
+                <mat-autocomplete #autoEquipo="matAutocomplete" [displayWith]="displayFn">
+                    <mat-option *ngFor="let equipo of filteredEquipos"
+                        [value]="equipo"
+                        (click)="selectEquipo(equipo)">
+                        {{ equipo.codigo }}
+                    </mat-option>
+                </mat-autocomplete>
+            </mat-form-field>
+            <button
+                mat-flat-button
+                color="primary"
+                class="mb-3"
+                type="button"
+                [disabled]="!servicioForm.get('equipo')?.value"
+                (click)="getBienes()">
+                <mat-icon class="mr-2" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                Buscar
+            </button>
+        </div>
+
+        <!-- Información de Bienes -->
+        <div class="mt-4">
+            <mat-label class="text-lg font-medium mb-2 block"><b>Información de Bienes</b></mat-label>
+            <mat-card appearance="outlined">
+                <mat-card-content *ngIf="bienes">
+                    <!-- Tipo de hardware -->
+                    <p *ngIf="bienes.data?.tipo; else noData"><b>Tipo hardware:</b> {{ bienes.data.tipo }}</p>
+                    <ng-template #noData><p><b>Tipo hardware:</b> No hay datos</p></ng-template>
+                    
+                    <!-- Descripción -->
+                    <p *ngIf="bienes.data?.observacion; else noDescription"><b>Descripción:</b> {{ bienes.data.observacion }}</p>
+                    <ng-template #noDescription><p><b>Descripción:</b> No hay datos</p></ng-template>
+                    
+                    <!-- Unidad -->
+                    <p *ngIf="bienes.data?.unidad; else noUnit"><b>Unidad:</b> {{ bienes.data.unidad }}</p>
+                    <ng-template #noUnit><p><b>Unidad:</b> No hay datos</p></ng-template>
+                    
+                    <!-- Características -->
+                    <p><b>Características:</b></p>
+                    <ul *ngIf="bienes.data?.caracteristicas; else noCharacteristics">
+                        <li><b>Marca:</b> {{ bienes.data.caracteristicas.MARCA }}</li>
+                        <li><b>Modelo:</b> {{ bienes.data.caracteristicas.MODELO }}</li>
+                        <li><b>Serie:</b> {{ bienes.data.caracteristicas.SERIE }}</li>
+                    </ul>
+                    <ng-template #noCharacteristics>
+                        <p>No hay datos de características</p>
+                    </ng-template>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        
+    </form>
+    <!-- Mensaje Flash -->
+    <div class="fixed bottom-0 right-0 p-8" *ngIf="flashMessage">
+        <div class="flex items-center rounded-lg px-4 py-2"
+            [ngClass]="{'bg-green-50 text-green-800': flashMessage === 'success',
+                        'bg-red-50 text-red-800': flashMessage === 'error'}">
+            <ng-container *ngIf="flashMessage === 'success'">
+                <mat-icon class="text-green-500 mr-2" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                <span>Servicio Actualizado</span>
+            </ng-container>
+            <ng-container *ngIf="flashMessage === 'error'">
+                <mat-icon class="text-red-500 mr-2" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+                <span>Ocurrió un error, ¡Inténtalo de nuevo!</span>
+            </ng-container>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,288 @@
+.list-wrapper {
+    @apply flex flex-col w-80 min-w-80 max-w-80 rounded-lg;
+    @apply bg-[#f3f4f6] dark:bg-[#1e1e2d];
+    
+    .list-header {
+        @apply flex items-center justify-between p-4;
+        @apply border-b border-[#e5e7eb] dark:border-gray-700;
+
+        .list-title {
+            @apply flex items-center;
+            
+            .title {
+                @apply font-medium text-gray-700 dark:text-gray-400;
+            }
+        }
+
+        .list-header-actions {
+            @apply flex items-center gap-2;
+
+            .counter {
+                @apply flex items-center justify-center rounded-full text-base font-medium 
+                       bg-gray-100 dark:bg-[#2B2B3F] dark:text-gray-400;
+                min-width: 2rem;
+                min-height: 2rem;
+                width: 2rem;
+                height: 2rem;
+                padding: 0;
+            }
+
+            .list-menu {
+                @apply dark:text-gray-400;
+            }
+        }
+    }
+
+    .list-cards {
+        @apply flex flex-col flex-auto p-2 overflow-y-auto;
+        min-height: 0;
+
+        .card {
+            @apply flex flex-col p-4 mb-4 rounded-lg shadow;
+            @apply bg-white dark:bg-[#2B2B3F];
+            
+            &:last-child {
+                @apply mb-4;
+            }
+
+            .card-header {
+                @apply flex items-center justify-between mb-2;
+                
+                .title {
+                    @apply font-medium dark:text-gray-300;
+                }
+            }
+
+            .card-content {
+                @apply flex flex-col;
+                
+                .description {
+                    @apply text-gray-600 dark:text-gray-400;
+                }
+
+                .labels {
+                    @apply flex flex-wrap gap-1 mt-2;
+                    
+                    .label {
+                        @apply px-2 py-0.5 rounded text-xs font-medium;
+                    }
+                }
+            }
+        }
+
+        .load-more-btn {
+            @apply w-full mt-2 p-2 text-center text-secondary dark:text-gray-400 
+                   hover:bg-gray-100 dark:hover:bg-[#2B2B3F] rounded-lg 
+                   flex items-center justify-center gap-2;
+
+            mat-spinner {
+                @apply text-primary;
+            }
+
+            span {
+                @apply text-sm;
+            }
+        }
+
+        .pagination-controls {
+            @apply flex flex-col p-2 mt-4 
+                   bg-gray-50 dark:bg-[#2B2B3F] rounded-lg;
+
+            .pagination-info {
+                @apply flex flex-col items-center mb-2;
+
+                .items-info {
+                    @apply text-sm text-secondary dark:text-gray-400;
+                }
+
+                .page-info {
+                    @apply text-xs text-secondary dark:text-gray-500 mt-1;
+                }
+            }
+
+            .pagination-buttons {
+                @apply flex items-center justify-center gap-1;
+
+                button {
+                    @apply text-secondary dark:text-gray-400;
+                    min-width: 32px;
+                    
+                    &:disabled {
+                        @apply opacity-50 cursor-not-allowed;
+                    }
+
+                    mat-icon {
+                        @apply text-current h-5 w-5;
+                    }
+
+                    &:hover:not(:disabled) {
+                        @apply bg-gray-200 dark:bg-gray-700;
+                    }
+                }
+            }
+        }
+    }
+
+    &.cdk-drop-list-dragging {
+        .card:not(.cdk-drag-placeholder) {
+            @apply transition-transform;
+        }
+    }
+}
+
+.cdk-drag-preview {
+    @apply shadow-2xl;
+}
+
+.cdk-drag-placeholder {
+    opacity: 0;
+}
+
+.cdk-drag-animating {
+    @apply transition-transform;
+}
+
+// Estilos para el estado de las tarjetas
+.status-indicator {
+    @apply w-2 h-2 rounded-full;
+
+    &.sin-asignar {
+        @apply bg-gray-500;
+    }
+
+    &.pendiente {
+        @apply bg-orange-500;
+    }
+
+    &.en-progreso {
+        @apply bg-blue-500;
+    }
+
+    &.terminado {
+        @apply bg-green-500;
+    }
+}
+
+// Estilos para las listas ocultas
+.hidden-lists-menu {
+    @apply flex flex-col w-80 min-w-80 max-w-80 bg-card dark:bg-[#1e1e2d] rounded-lg p-4;
+
+    .title {
+        @apply font-medium mb-4 dark:text-gray-400;
+    }
+
+    .hidden-list-item {
+        @apply w-full justify-start dark:text-gray-400 mb-2;
+    }
+}
+
+// Estilos para el contenedor principal
+.board-container {
+    @apply flex flex-auto min-h-0 w-full overflow-x-auto;
+
+    .lists-container {
+        @apply flex flex-row gap-4 p-4;
+    }
+}
+
+// Estilos para el encabezado del tablero
+.board-header {
+    @apply flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between 
+           p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent;
+
+    .header-content {
+        @apply flex flex-col sm:flex-row w-full items-center justify-between 
+               space-y-4 sm:space-y-0 sm:space-x-4;
+
+        .title-section {
+            @apply flex-1;
+
+            .board-title {
+                @apply text-3xl md:text-4xl font-extrabold tracking-tight 
+                       leading-7 sm:leading-10 truncate;
+            }
+        }
+
+        .actions-section {
+            @apply flex items-center space-x-4;
+
+            .tecnico-select {
+                min-width: 200px;
+                margin-bottom: 0;
+
+                ::ng-deep {
+                    .mat-mdc-select-value {
+                        color: inherit;
+                    }
+
+                    .mat-mdc-select-trigger {
+                        color: inherit;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Estilo para la opción "TODOS" en el desplegable
+::ng-deep .todos-option {
+    font-weight: 500;  // Semi-negrita para destacar
+}
+
+.tecnico-select {
+    min-width: 200px;
+    margin-bottom: 0;
+
+    ::ng-deep {
+        .mat-mdc-select-value {
+            color: inherit !important;
+        }
+
+        .mat-mdc-select-trigger {
+            color: inherit !important;
+        }
+
+        .mat-mdc-select-value-text {
+            color: inherit !important;
+        }
+    }
+}
+
+.todos-option {
+    font-weight: 500;
+    color: inherit !important;
+}
+
+.tecnico-select-wide {
+    width: 300px; // Doble del ancho original
+
+    ::ng-deep .mat-mdc-select-panel {
+        max-height: 400px !important;
+    }
+
+    .search-box {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color: white;
+        padding: 8px;
+        margin-bottom: 8px;
+        
+        .mat-form-field {
+            width: 100%;
+            margin: 0;
+        }
+    }
+}
+
+::ng-deep .mat-mdc-select-panel {
+    .search-box {
+        background-color: white;
+        padding: 8px;
+        
+        .mat-form-field {
+            width: 100%;
+            margin: 0;
+        }
+    }
+}

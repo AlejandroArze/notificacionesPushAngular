@@ -1,0 +1,112 @@
+{
+	"id": "0c4q8oi8dq8",
+	"x": -76,
+	"y": 8,
+	"width": 112,
+	"height": 20,
+	"links": [
+		{
+			"id": "linkcbhe7nelfmo",
+			"from": {
+				"path": [
+					{
+						"boxId": "5lrrseup4k",
+						"boxName": "ecommerce.routes.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"to": {
+				"path": [
+					{
+						"boxId": "d09lre50pf",
+						"boxName": "inventory",
+						"x": 18,
+						"y": 18
+					},
+					{
+						"boxId": "c25htj8eir",
+						"boxName": "inventory.component.html",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"tags": [
+				"autoMaintained"
+			]
+		},
+		{
+			"id": "linktg1gt7fbpng",
+			"from": {
+				"path": [
+					{
+						"boxId": "5lrrseup4k",
+						"boxName": "ecommerce.routes.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"to": {
+				"path": [
+					{
+						"boxId": "d09lre50pf",
+						"boxName": "inventory",
+						"x": 45.2,
+						"y": 45.2
+					},
+					{
+						"boxId": "fak4jprm61o",
+						"boxName": "list",
+						"x": 26,
+						"y": 26
+					},
+					{
+						"boxId": "a7f79n2ut68",
+						"boxName": "inventory.component.html",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"tags": [
+				"autoMaintained"
+			]
+		},
+		{
+			"id": "linko0a5lvi12a8",
+			"from": {
+				"path": [
+					{
+						"boxId": "5lrrseup4k",
+						"boxName": "ecommerce.routes.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"to": {
+				"path": [
+					{
+						"boxId": "d09lre50pf",
+						"boxName": "inventory",
+						"x": 82,
+						"y": 18
+					},
+					{
+						"boxId": "ph546km9pf8",
+						"boxName": "inventory.service.ts",
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"tags": [
+				"autoMaintained"
+			]
+		}
+	],
+	"nodes": []
+}

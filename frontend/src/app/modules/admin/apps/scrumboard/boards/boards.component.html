@@ -1,0 +1,36 @@
+<div
+    class="absolute inset-0 flex flex-col min-w-0 overflow-y-auto"
+    cdkScrollable>
+
+    <!-- Principal -->
+    <div class="flex flex-col flex-auto items-center p-6 sm:p-10">
+
+        <!-- Título -->
+        <div class="mt-4 md:mt-24 text-3xl md:text-6xl font-extrabold tracking-tight leading-7 sm:leading-10">
+            Servicios Técnicos
+        </div>
+
+        <!-- Tableros -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-8 md:mt-16">
+            <ng-container *ngFor="let board of boards; trackBy: trackByFn">
+                <a
+                    class="flex flex-col items-start w-full p-6 rounded-lg shadow bg-card hover:shadow-xl transition-shadow duration-150 ease-in-out"
+                    [routerLink]="[board.id]">
+                    <div class="flex items-center justify-center p-6 rounded-full bg-primary-50 text-primary-700 dark:bg-primary dark:text-on-primary">
+                        <mat-icon
+                            class="text-current"
+                            [svgIcon]="board.icon"></mat-icon>
+                    </div>
+                    <!-- Título -->
+                    <div class="mt-5 text-2xl font-medium">{{board.title}}</div>
+                    <!-- Descripción -->
+                    <div class="mt-2 text-secondary">{{board.description}}</div>
+                </a>
+            </ng-container>
+        </div>
+
+    </div>
+
+</div>
+
+
