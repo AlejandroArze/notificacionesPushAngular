@@ -31,6 +31,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { filter as rxFilter } from 'rxjs/operators';
 
 export class CustomErrorStateMatcher implements ErrorStateMatcher {
     isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -510,7 +511,7 @@ export class TasksDetailsComponent implements OnInit, AfterViewInit, OnDestroy
         this._tasksListComponent.matDrawer.openedChange
             .pipe(
                 takeUntil(this._unsubscribeAll),   // Cancela la suscripción cuando el componente se destruye
-                filter(opened => opened),           // Filtra solo cuando el drawer está abierto
+                rxFilter((opened: boolean) => opened),           // Filtra solo cuando el drawer está abierto
             )
             .subscribe(() => {
                 // Verificar que el elemento existe antes de intentar enfocarlo

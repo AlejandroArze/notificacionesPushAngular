@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Tag, Task, Servicio, InventoryPagination, InventoryEquipment } from 'app/modules/admin/apps/tasks/tasks.types';
-import { BehaviorSubject, filter, map, Observable, of, switchMap, take, tap, throwError,catchError } from 'rxjs';
+import { Tag, Task, Servicio, InventoryPagination, InventoryEquipment, NotificacionPush, FiltroNotificacion, DestinatarioNotificacion } from 'app/modules/admin/apps/tasks/tasks.types';
+import { BehaviorSubject, filter, map, Observable, of, switchMap, take, tap, throwError, catchError } from 'rxjs';
 import { environment } from 'environments/environment'; 
 import { forkJoin } from 'rxjs';
 
@@ -39,6 +39,8 @@ export class TasksService
     
     // Constante para el estado
     private readonly ESTADO_SIN_ASIGNAR = 'SIN ASIGNAR';
+
+    private _notificaciones: BehaviorSubject<NotificacionPush[]> = new BehaviorSubject<NotificacionPush[]>([]);
 
     /**
      * Constructor
@@ -979,6 +981,75 @@ export class TasksService
     // Agregar este método público en TasksService
     updatePagination(pagination: InventoryPagination): void {
         this._pagination.next(pagination);
+    }
+
+    /**
+     * Enviar notificación push
+     * @param notificacion Detalles de la notificación
+     * @param filtros Filtros para destinatarios
+     */
+    enviarNotificacionPush(
+        notificacion: NotificacionPush, 
+        filtros?: FiltroNotificacion
+    ): Observable<any> {
+        return this._httpClient.post<any>(
+            `${this.baseUrl}/notificaciones/enviar`, 
+            { notificacion, filtros }
+        ).pipe(
+            map(response => {
+                // Actualizar lista de notificaciones si es necesario
+                const notificacionesActuales = this._notificaciones.value;
+                this._notificaciones.next([...notificacionesActuales, notificacion]);
+                return response;
+            }),
+            catchError(error => {
+                console.error('Error al enviar notificación', error);
+                return throwError(() => new Error('No se pudo enviar la notificación'));
+            })
+        );
+    }
+
+    /**
+     * Obtener destinatarios según filtros
+     * @param filtros Filtros para buscar destinatarios
+     */
+    obtenerDestinatarios(filtros: FiltroNotificacion): Observable<DestinatarioNotificacion[]> {
+        return this._httpClient.post<DestinatarioNotificacion[]>(
+            `${this.baseUrl}/destinatarios`, 
+            filtros
+        );
+    }
+
+    /**
+     * Obtener historial de notificaciones
+     * @param servicioId ID del servicio (opcional)
+     */
+    obtenerHistorialNotificaciones(servicioId?: number): Observable<NotificacionPush[]> {
+        let params = new HttpParams();
+        if (servicioId) {
+            params = params.set('servicioId', servicioId.toString());
+        }
+
+        return this._httpClient.get<NotificacionPush[]>(
+            `${this.baseUrl}/notificaciones`, 
+            { params }
+        ).pipe(
+            map(notificaciones => {
+                this._notificaciones.next(notificaciones);
+                return notificaciones;
+            }),
+            catchError(error => {
+                console.error('Error al obtener historial de notificaciones', error);
+                return of([]);
+            })
+        );
+    }
+
+    /**
+     * Observable para acceder a las notificaciones
+     */
+    get notificaciones$(): Observable<NotificacionPush[]> {
+        return this._notificaciones.asObservable();
     }
 
 }

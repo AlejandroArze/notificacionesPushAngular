@@ -1,137 +1,247 @@
-<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden">
-
-    <mat-drawer-container
-        class="flex-auto h-full bg-card dark:bg-transparent"
-        (backdropClick)="onBackdropClicked()">
-
-        <!-- Drawer -->
-        <mat-drawer
-            class="w-full sm:w-128 dark:bg-gray-900"
-            [mode]="drawerMode"
-            [opened]="false"
-            [position]="'end'"
-            [disableClose]="true"
-            #matDrawer>
-            <router-outlet></router-outlet>
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <mat-drawer-container class="flex-auto">
+        <mat-drawer #matDrawer mode="side" position="end">
+            <!-- Drawer content if needed -->
         </mat-drawer>
+        
+        <mat-drawer-content>
+            <div class="p-8">
+                <div class="grid grid-cols-2 gap-8">
+                    <!-- Columna de Configuración -->
+                    <div class="bg-white dark:bg-[#1e293b] rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+                        <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">
+                            <span class="flex items-center">
+                                <mat-icon class="mr-2 text-blue-500">notifications</mat-icon>
+                                Notificación
+                            </span>
+                        </h2>
 
-        <mat-drawer-content class="flex flex-col">
+                        <div class="space-y-6">
+                            <!-- Título de la notificación -->
+                            <div>
+                                <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    Título de la notificación
+                                </label>
+                                <input 
+                                    type="text" 
+                                    [(ngModel)]="notificacionForm.titulo" 
+                                    placeholder="Ingresa un título opcional"
+                                    class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                            </div>
 
-            <!-- Main -->
-            <div class="flex flex-col flex-auto">
+                            <!-- Texto de la notificación -->
+                            <div>
+                                <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    Texto de la notificación
+                                </label>
+                                <textarea 
+                                    [(ngModel)]="notificacionForm.mensaje"
+                                    placeholder="Ingresar texto de la notificación"
+                                    class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg h-24 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"></textarea>
+                            </div>
 
-                <!-- Header -->
-                <div class="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between py-8 px-6 md:px-8">
-                    <!-- Title -->
-                    <div>
-                        <div class="text-4xl font-extrabold tracking-tight leading-none">Recepción de Servicios</div>
-                        <div class="ml-0.5 font-medium text-secondary">
-                            <span *ngIf="tasksCount.incomplete === 0">¡Todos los Servicios sin Asignar!</span>
-                            <span *ngIf="tasksCount.incomplete !== 0">{{tasksCount.incomplete}} Tareas Restantes</span>
-                        </div>
-                    </div>
-                    <!-- Actions -->
-                    <div class="mt-4 sm:mt-0">
-                        <!-- Add section button 
-                        <button
-                            mat-flat-button
-                            [color]="'accent'"
-                            (click)="createService()"
-                            [matTooltip]="'Shortcut: Ctrl + .'">
-                            <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
-                            <span class="ml-2 mr-1">Añadir Sección</span>
-                        </button>
-                        -->
-                        <!-- Add task button -->
-                        <button
-                            class="ml-3"
-                            mat-flat-button
-                            [color]="'primary'"
-                            (click)="createService()"
-                            [matTooltip]="'Shortcut: Ctrl + /'">
-                            <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
-                            <span class="ml-2 mr-1">Añadir Servicio</span>
-                        </button>
-                    </div>
-                </div>
+                            <!-- Imagen de notificación -->
+                            <div>
+                                <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    Imagen de notificación (opcional)
+                                </label>
+                                <div class="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        [(ngModel)]="notificacionForm.imagen"
+                                        placeholder="Ejemplo: https://tuapp.com/imagen.png"
+                                        class="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                    <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95">
+                                        <mat-icon class="text-white">upload</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
 
-               <!-- Services list -->
-               <ng-container >
-                <div
-                    class="divide-y"
-                    cdkDropList
-                    [cdkDropListData]="services"
-                    (cdkDropListDropped)="dropped($event)">
-
-                    <!-- Service -->
-                    <ng-container *ngFor="let service of services; let first = first; trackBy: trackByFn">
-                        <div
-                            [id]="'service-' + service.servicios_id"
-                            class="group w-full select-none hover:bg-gray-100 dark:hover:bg-hover"
-                            [ngClass]="{'h-12 text-lg font-semibold bg-gray-50 dark:bg-transparent': true}"
-                            [class.border-t]="first"
-                            cdkDrag
-                            [cdkDragLockAxis]="'y'">
-
-                            <!-- Drag preview -->
-                            <div
-                                class="flex flex-0 w-0 h-0"
-                                *cdkDragPreview></div>
-
-                            <!-- Service content -->
-                            <div class="relative flex items-center h-full pl-10">
-
-                                <!-- Drag handle -->
-                                <div
-                                    class="md:hidden absolute flex items-center justify-center inset-y-0 left-0 w-8 cursor-move md:group-hover:flex"
-                                    cdkDragHandle>
-                                    <mat-icon
-                                        class="icon-size-5 text-hint"
-                                        [svgIcon]="'heroicons_solid:bars-3'"></mat-icon>
+                            <!-- Filtros en grid -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- Roles -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        Roles
+                                    </label>
+                                    <mat-select 
+                                        [(ngModel)]="notificacionForm.roles" 
+                                        multiple 
+                                        class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
+                                        <mat-option *ngFor="let rol of rolesDisponibles" [value]="rol.value">
+                                            {{rol.label}}
+                                        </mat-option>
+                                    </mat-select>
                                 </div>
 
-                                <!-- Service details -->
-                                <a
-                                    class="flex flex-auto items-center min-w-0 h-full pr-7"
-                                    [routerLink]="[service.servicios_id]">
-                                    <!-- Title & Placeholder -->
-                                    <div class="flex-auto mr-2 truncate">
-                                        <span>{{service.problema || 'Sin nombre'}}</span>
-                                        <div class="text-sm text-secondary">{{service.tipo + ' - '|| 'Sin tipo de Servicio - '}}   {{service.oficinaSolicitante + ' - ' || 'Sin oficina - '}}   {{service.nombreSolicitante || 'Sin oficina'}}</div>
-                                    </div>
-                                </a>
+                                <!-- Unidades -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        Unidades
+                                    </label>
+                                    <mat-select 
+                                        [(ngModel)]="notificacionForm.unidades" 
+                                        multiple 
+                                        class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
+                                        <mat-option *ngFor="let unidad of unidadesDisponibles" [value]="unidad">
+                                            {{unidad}}
+                                        </mat-option>
+                                    </mat-select>
+                                </div>
+                            </div>
 
-                                <!-- Complete service button -->
-                                <button
-                                    class="mr-2 -ml-2.5 leading-none"
-                                    (click)="toggleCompleted(service)"
-                                    mat-icon-button>
-                                    <mat-icon
-                                        [svgIcon]="service.estado === 'completado' ? 'heroicons_outline:check-circle' : 'heroicons_outline:minus-circle'"
-                                        [class.text-primary]="service.estado === 'completado'"
-                                        [class.text-hint]="service.estado !== 'completado'"></mat-icon>
+                            <!-- Botones de acción -->
+                            <div class="flex justify-end gap-3 mt-8">
+                                <button 
+                                    mat-stroked-button
+                                    class="px-6 py-2 text-white bg-gray-500 hover:bg-gray-600 rounded-lg transition-colors flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95"
+                                    (click)="cancelarNotificacion()">
+                                    <span class="text-white">Cancelar</span>
+                                </button>
+                                <button 
+                                    mat-raised-button
+                                    class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95"
+                                    (click)="previsualizarDestinatarios()"
+                                    [disabled]="!validarFormularioNotificacion()">
+                                    <span class="text-white">Enviar Notificación</span>
                                 </button>
                             </div>
                         </div>
-                    </ng-container>
-                </div>
-
-            </ng-container>
-
-                <!-- Plantilla para el caso de no haber servicios -->
-                <ng-template #noTasks>
-                    <div class="flex flex-auto flex-col items-center justify-center bg-gray-100 dark:bg-transparent">
-                        <mat-icon
-                            class="icon-size-24"
-                            [svgIcon]="'heroicons_outline:clipboard-document-list'"></mat-icon>
-                        <div class="mt-4 text-2xl font-semibold tracking-tight text-secondary">¡Agrega una tarea para comenzar a planificar!</div>
                     </div>
-                </ng-template>
 
+                    <!-- Columna de Vista Previa -->
+                    <div class="bg-white dark:bg-[#1e293b] rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+                        <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">
+                            <span class="flex items-center">
+                                <mat-icon class="mr-2 text-blue-500">phone_android</mat-icon>
+                                Vista previa del dispositivo
+                            </span>
+                        </h2>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                                En esta vista previa, se ofrece una idea general de cómo se mostrará tu mensaje en un dispositivo móvil.
+                            </p>
+
+                            <!-- Botones de vista -->
+                            <div class="flex justify-center gap-3 mb-6">
+                                <button 
+                                    (click)="cambiarVistaPrevia('inicial')"
+                                    class="px-6 py-2 rounded-lg transition-all cursor-pointer 
+                                           bg-blue-100 text-white 
+                                           dark:bg-blue-900 dark:text-white
+                                           hover:bg-blue-500
+                                           border border-blue-200 dark:border-blue-800
+                                           hover:scale-105 active:scale-95"
+                                    [class.bg-blue-500]="vistaPrevia === 'inicial'"
+                                    [class.text-white]="vistaPrevia === 'inicial'"
+                                    [class.dark:bg-blue-500]="vistaPrevia === 'inicial'"
+                                    [class.dark:text-white]="vistaPrevia === 'inicial'">
+                                    Estado inicial
+                                </button>
+                                <button 
+                                    (click)="cambiarVistaPrevia('expandida')"
+                                    class="px-6 py-2 rounded-lg transition-all cursor-pointer 
+                                           bg-blue-100 text-white 
+                                           dark:bg-blue-900 dark:text-white
+                                           hover:bg-blue-500
+                                           border border-blue-200 dark:border-blue-800
+                                           hover:scale-105 active:scale-95"
+                                    [class.bg-blue-500]="vistaPrevia === 'expandida'"
+                                    [class.text-white]="vistaPrevia === 'expandida'"
+                                    [class.dark:bg-blue-500]="vistaPrevia === 'expandida'"
+                                    [class.dark:text-white]="vistaPrevia === 'expandida'">
+                                    Vista expandida
+                                </button>
+                            </div>
+
+                            <div class="space-y-6">
+                                <!-- iOS Preview -->
+                                <div class="relative">
+                                    <div 
+                                        class="ios preview-background rounded-xl overflow-hidden shadow-lg"
+                                        style="
+                                            background-image: url('https://www.gstatic.com/mobilesdk/190403_mobilesdk/iphone.png'); 
+                                            background-size: contain;
+                                            background-repeat: no-repeat;
+                                            background-position: center;
+                                            height: 200px;
+                                            width: 100%;
+                                            position: relative;">
+                                        <div class="absolute inset-0 flex items-center justify-center p-4">
+                                            <div class="bg-white bg-opacity-90 rounded-lg p-3 w-[95%] max-w-sm">
+                                                <div class="banner-content flex items-center">
+                                                    <div class="banner-text flex-grow">
+                                                        <div class="title text-base font-bold mb-1 ml-1 text-black">
+                                                            {{notificacionForm.titulo || 'Notification Title'}}
+                                                        </div>
+                                                        <div class="text text-sm text-black mb-2 ml-1">
+                                                            {{notificacionForm.mensaje || 'Notification Text'}}
+                                                        </div>
+                                                    </div>
+                                                    <img 
+                                                        *ngIf="notificacionForm.imagen || true"
+                                                        [src]="notificacionForm.imagen || 'https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'"
+                                                        alt="Notification Image"
+                                                        class="banner-image w-16 h-16 rounded-md ml-2 object-cover"
+                                                        onerror="this.src='https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h5 class="text-center mt-2 text-sm text-gray-600">Apple</h5>
+                                </div>
+
+                                <!-- Android Preview -->
+                                <div class="relative">
+                                    <div 
+                                        class="android preview-background rounded-xl overflow-hidden shadow-lg"
+                                        style="
+                                            background-image: url('https://www.gstatic.com/mobilesdk/190403_mobilesdk/android.png'); 
+                                            background-size: contain;
+                                            background-repeat: no-repeat;
+                                            background-position: center;
+                                            height: 200px;
+                                            width: 100%;
+                                            position: relative;">
+                                        <div class="absolute inset-0 flex items-center justify-center p-4 pt-12">
+                                            <div class="bg-white rounded-lg p-3 w-[95%] max-w-sm shadow-md">
+                                                <div class="banner-content flex items-center">
+                                                    <div class="banner-text flex-grow">
+                                                        <div class="title text-base font-bold mb-1 ml-1 text-black">
+                                                            {{notificacionForm.titulo || 'Notification Title'}}
+                                                        </div>
+                                                        <div class="text text-sm text-black mb-2 ml-1">
+                                                            {{notificacionForm.mensaje || 'Notification Text'}}
+                                                        </div>
+                                                    </div>
+                                                    <img 
+                                                        *ngIf="notificacionForm.imagen || true"
+                                                        [src]="notificacionForm.imagen || 'https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'"
+                                                        alt="Notification Image"
+                                                        class="banner-image w-16 h-16 rounded-md ml-2 object-cover"
+                                                        onerror="this.src='https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h5 class="text-center mt-2 text-sm text-gray-600">Android</h5>
+                                </div>
+                            </div>
+
+                            <!-- Botón de prueba -->
+                            <div class="mt-6">
+                                <button 
+                                    class="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
+                                    (click)="enviarMensajePrueba()">
+                                    <mat-icon class="text-white">send</mat-icon>
+                                    <span class="text-white">Enviar mensaje de prueba</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-
         </mat-drawer-content>
-
     </mat-drawer-container>
-
 </div>

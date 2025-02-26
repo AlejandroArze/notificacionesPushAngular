@@ -1,0 +1,127 @@
+<div class="p-6 grid grid-cols-2 gap-6">
+    <!-- Columna de Configuración -->
+    <div>
+        <h2 class="text-xl font-bold mb-4">Notificación</h2>
+
+        <div class="space-y-4">
+            <!-- Título de la notificación -->
+            <div>
+                <label class="block mb-2 text-sm font-medium">Título de la notificación</label>
+                <input 
+                    type="text" 
+                    formControlName="titulo" 
+                    placeholder="Ingresa un título opcional"
+                    class="w-full border rounded p-2">
+            </div>
+
+            <!-- Texto de la notificación -->
+            <div>
+                <label class="block mb-2 text-sm font-medium">Texto de la notificación</label>
+                <textarea 
+                    formControlName="mensaje" 
+                    placeholder="Ingresar texto de la notificación"
+                    class="w-full border rounded p-2 h-24"></textarea>
+            </div>
+
+            <!-- Imagen de notificación -->
+            <div>
+                <label class="block mb-2 text-sm font-medium">Imagen de notificación (opcional)</label>
+                <div class="flex">
+                    <input 
+                        type="text" 
+                        formControlName="imagen" 
+                        placeholder="Ejemplo: https://tuapp.com/imagen.png"
+                        class="w-full border rounded p-2 mr-2">
+                    <button class="bg-gray-200 px-3 rounded">
+                        <mat-icon>upload</mat-icon>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Nombre de la notificación -->
+            <div>
+                <label class="block mb-2 text-sm font-medium">Nombre de la notificación (opcional)</label>
+                <input 
+                    type="text" 
+                    formControlName="nombreNotificacion" 
+                    placeholder="Ingresar nombre opcional"
+                    class="w-full border rounded p-2">
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna de Vista Previa -->
+    <div>
+        <h2 class="text-xl font-bold mb-4">Vista previa del dispositivo</h2>
+        
+        <div class="bg-gray-100 p-4 rounded">
+            <p class="text-sm text-gray-600 mb-4">
+                En esta vista previa, se ofrece una idea general de cómo se mostrará tu mensaje en un dispositivo móvil. 
+                La aparencia real del mensaje variará en función del dispositivo.
+            </p>
+
+            <div class="flex justify-center mb-4">
+                <button 
+                    (click)="cambiarVistaPrevia('inicial')"
+                    [class]="vistaPrevia === 'inicial' ? 'mr-2 px-4 py-2 bg-blue-500 text-white rounded' : 'mr-2 px-4 py-2 border rounded'">
+                    Estado inicial
+                </button>
+                <button 
+                    (click)="cambiarVistaPrevia('expandida')"
+                    [class]="vistaPrevia === 'expandida' ? 'px-4 py-2 bg-blue-500 text-white rounded' : 'px-4 py-2 border rounded'">
+                    Vista expandida
+                </button>
+            </div>
+
+            <button 
+                class="w-full mb-4 bg-blue-500 text-white py-2 rounded"
+                (click)="enviarMensajePrueba()">
+                Enviar mensaje de prueba
+            </button>
+
+            <!-- Android Preview -->
+            <div class="bg-white rounded-lg p-4 mb-4 shadow">
+                <h4 class="text-sm font-medium mb-2">Android</h4>
+                <div class="border rounded-lg p-3">
+                    <div class="text-sm font-bold">
+                        {{notificacionForm.get('titulo').value || 'Notification Title'}}
+                    </div>
+                    <div class="text-sm">
+                        {{notificacionForm.get('mensaje').value || 'Notification Text'}}
+                    </div>
+                    <img *ngIf="notificacionForm.get('imagen').value" 
+                         [src]="notificacionForm.get('imagen').value" 
+                         class="mt-2 max-w-full h-auto rounded">
+                </div>
+            </div>
+
+            <!-- Apple Preview -->
+            <div class="bg-white rounded-lg p-4 shadow">
+                <h4 class="text-sm font-medium mb-2">Apple</h4>
+                <div class="border rounded-lg p-3">
+                    <div class="text-sm font-bold">
+                        {{notificacionForm.get('titulo').value || 'Notification Title'}}
+                    </div>
+                    <div class="text-sm">
+                        {{notificacionForm.get('mensaje').value || 'Notification Text'}}
+                    </div>
+                    <img *ngIf="notificacionForm.get('imagen').value" 
+                         [src]="notificacionForm.get('imagen').value" 
+                         class="mt-2 max-w-full h-auto rounded">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="col-span-2 flex justify-end mt-4">
+        <button mat-button (click)="cancelar()">Cancelar</button>
+        <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="previsualizarDestinatarios()"
+            [disabled]="!notificacionForm.valid">
+            Siguiente
+        </button>
+    </div>
+</div> 

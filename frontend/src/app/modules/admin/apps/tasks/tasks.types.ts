@@ -71,3 +71,48 @@ export interface InventoryEquipment {
     lector?: boolean;
 }
 
+export interface NotificacionPush {
+    id?: string;
+    titulo: string;
+    mensaje: string;
+    imagen?: string;
+    nombreNotificacion?: string;
+    icono?: string;
+    fechaCreacion: Date;
+    fechaProgramada?: Date;
+    servicioId?: number;
+    destinatarios: {
+        usuarioId: string;
+        estado: 'enviada' | 'leída' | 'no_leída';
+    }[];
+    tipoEnvio: 'individual' | 'grupo' | 'todos';
+    payload?: any;
+}
+
+export interface FiltroNotificacion {
+    roles?: string[];
+    unidades?: string[];
+    cargos?: string[];
+    tipoContrato?: string[];
+    servicios?: string[];
+    estados?: string[];
+    tipos?: string[];
+}
+
+export interface DestinatarioNotificacion {
+    id: string;
+    nombre: string;
+    rol: string;
+    unidad: string;
+}
+
+export interface FiltroNotificacion {
+    roles?: string[];
+    unidades?: string[];
+    cargos?: string[];
+    tipoContrato?: string[];
+    servicios?: string[]; // Add this line
+    estados?: string[]; // Add this line
+    tipos?: string[]; // Add this line
+}
+
