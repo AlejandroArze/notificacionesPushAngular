@@ -1052,4 +1052,8 @@ export class TasksService
         return this._notificaciones.asObservable();
     }
 
+    subirImagenNotificacion(formData: FormData) {
+        return this._httpClient.post('/api/notificaciones/imagen', formData);
+    }
+
 }

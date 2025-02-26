@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
     selector: 'tasks-list',
@@ -24,11 +25,13 @@ import { CommonModule } from '@angular/common';
         FormsModule,
         MatSnackBarModule,
         MatIconModule,
-        MatButtonModule
+        MatButtonModule,
+        HttpClientModule
     ]
 })
 export class TasksListComponent implements OnInit {
     @ViewChild('matDrawer', {static: true}) matDrawer: MatDrawer;
+    @ViewChild('fileInput') fileInput: ElementRef;
 
     // Propiedades de notificación
     notificacionForm = {
@@ -72,7 +75,8 @@ export class TasksListComponent implements OnInit {
 
     constructor(
         private _tasksService: TasksService,
-        private _snackBar: MatSnackBar
+        private _snackBar: MatSnackBar,
+        private _http: HttpClient
     ) {}
 
     ngOnInit(): void {
@@ -154,5 +158,65 @@ export class TasksListComponent implements OnInit {
 
     get notificationText(): string {
         return this.notificacionForm.mensaje || 'Notification Text';
+    }
+
+    // Método para manejar la selección de archivos
+    onFileSelected(event: any) {
+        const file: File = event.target.files[0];
+        
+        if (file) {
+            // Validar tipo y tamaño de imagen
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+
+            if (!allowedTypes.includes(file.type)) {
+                this._snackBar.open('Tipo de archivo no permitido', 'Cerrar', { duration: 3000 });
+                return;
+            }
+
+            if (file.size > maxSize) {
+                this._snackBar.open('El archivo es demasiado grande', 'Cerrar', { duration: 3000 });
+                return;
+            }
+
+            // Crear URL temporal para previsualización
+            const reader = new FileReader();
+            reader.onload = (e: any) => {
+                this.notificacionForm.imagen = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            // Opcional: Subir imagen al servidor
+            this.subirImagen(file);
+        }
+    }
+
+    // Método para subir imagen al servidor
+    subirImagen(file: File) {
+        const formData = new FormData();
+        formData.append('imagen', file);
+
+        this._tasksService.subirImagenNotificacion(formData)
+            .subscribe({
+                next: (respuesta: any) => {
+                    // Actualizar URL de imagen si el servidor devuelve una URL
+                    if (respuesta.url) {
+                        this.notificacionForm.imagen = respuesta.url;
+                    }
+            },
+            error: (error) => {
+                    this._snackBar.open('Error al subir imagen', 'Cerrar', { duration: 3000 });
+            }
+        });
+    }
+
+    // Método para abrir selector de archivos
+    triggerFileInput() {
+        this.fileInput.nativeElement.click();
+    }
+
+    // Método para eliminar imagen
+    eliminarImagen() {
+        this.notificacionForm.imagen = '';
     }
 }

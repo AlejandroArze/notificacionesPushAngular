@@ -3,7 +3,7 @@
         <mat-drawer #matDrawer mode="side" position="end">
             <!-- Drawer content if needed -->
         </mat-drawer>
-        
+
         <mat-drawer-content>
             <div class="p-8">
                 <div class="grid grid-cols-2 gap-8">
@@ -51,8 +51,28 @@
                                         [(ngModel)]="notificacionForm.imagen"
                                         placeholder="Ejemplo: https://tuapp.com/imagen.png"
                                         class="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                    <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95">
+                                    
+                                    <!-- Input de archivo oculto -->
+                                    <input 
+                                        #fileInput
+                                        type="file" 
+                                        accept="image/*"
+                                        (change)="onFileSelected($event)"
+                                        class="hidden">
+                                    
+                                    <!-- Botón de subir -->
+                                    <button 
+                                        (click)="triggerFileInput()"
+                                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95">
                                         <mat-icon class="text-white">upload</mat-icon>
+                                    </button>
+                                    
+                                    <!-- Botón de eliminar (si hay imagen) -->
+                                    <button 
+                                        *ngIf="notificacionForm.imagen"
+                                        (click)="eliminarImagen()"
+                                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95">
+                                        <mat-icon class="text-white">delete</mat-icon>
                                     </button>
                                 </div>
                             </div>
@@ -75,7 +95,7 @@
                                 </div>
 
                                 <!-- Unidades -->
-                                <div>
+                    <div>
                                     <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                                         Unidades
                                     </label>
@@ -125,7 +145,7 @@
 
                             <!-- Botones de vista -->
                             <div class="flex justify-center gap-3 mb-6">
-                                <button 
+                        <button
                                     (click)="cambiarVistaPrevia('inicial')"
                                     class="px-6 py-2 rounded-lg transition-all cursor-pointer 
                                            bg-blue-100 text-white 
@@ -138,8 +158,8 @@
                                     [class.dark:bg-blue-500]="vistaPrevia === 'inicial'"
                                     [class.dark:text-white]="vistaPrevia === 'inicial'">
                                     Estado inicial
-                                </button>
-                                <button 
+                        </button>
+                        <button
                                     (click)="cambiarVistaPrevia('expandida')"
                                     class="px-6 py-2 rounded-lg transition-all cursor-pointer 
                                            bg-blue-100 text-white 
@@ -152,7 +172,7 @@
                                     [class.dark:bg-blue-500]="vistaPrevia === 'expandida'"
                                     [class.dark:text-white]="vistaPrevia === 'expandida'">
                                     Vista expandida
-                                </button>
+                        </button>
                             </div>
 
                             <div class="space-y-6">
@@ -169,7 +189,8 @@
                                             width: 100%;
                                             position: relative;">
                                         <div class="absolute inset-0 flex items-center justify-center p-4">
-                                            <div class="bg-white bg-opacity-90 rounded-lg p-3 w-[95%] max-w-sm">
+                                            <!-- Contenido para estado inicial -->
+                                            <div *ngIf="vistaPrevia === 'inicial'" class="bg-white bg-opacity-90 rounded-lg p-3 w-[95%] max-w-sm">
                                                 <div class="banner-content flex items-center">
                                                     <div class="banner-text flex-grow">
                                                         <div class="title text-base font-bold mb-1 ml-1 text-black">
@@ -185,6 +206,28 @@
                                                         alt="Notification Image"
                                                         class="banner-image w-16 h-16 rounded-md ml-2 object-cover"
                                                         onerror="this.src='https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'">
+                    </div>
+                </div>
+
+                                            <!-- Contenido para vista expandida -->
+                                            <div *ngIf="vistaPrevia === 'expandida'" class="bg-white rounded-lg w-[95%] max-w-sm overflow-hidden relative mt-14">
+                                                <div class="banner-content">
+                                                    <div class="banner-text p-4 absolute top-0 left-0 right-0">
+                                                        <div class="title text-base font-bold mb-2 text-black">
+                                                            {{notificacionForm.titulo || 'Notification Title'}}
+                                                        </div>
+                                                        <div class="text text-sm text-black mb-4">
+                                                            {{notificacionForm.mensaje || 'Notification Text'}}
+                                                        </div>
+                                                    </div>
+                                                    <div class="pt-16 max-h-[50%] overflow-hidden">
+                                                        <img 
+                                                            *ngIf="notificacionForm.imagen || true"
+                                                            [src]="notificacionForm.imagen || 'https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'"
+                                                            alt="Notification Image"
+                                                            class="banner-image w-32 h-20 mx-auto object-contain" 
+                                                            onerror="this.src='https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -205,7 +248,8 @@
                                             width: 100%;
                                             position: relative;">
                                         <div class="absolute inset-0 flex items-center justify-center p-4 pt-12">
-                                            <div class="bg-white rounded-lg p-3 w-[95%] max-w-sm shadow-md">
+                                            <!-- Contenido para estado inicial -->
+                                            <div *ngIf="vistaPrevia === 'inicial'" class="bg-white rounded-lg p-3 w-[95%] max-w-sm shadow-md">
                                                 <div class="banner-content flex items-center">
                                                     <div class="banner-text flex-grow">
                                                         <div class="title text-base font-bold mb-1 ml-1 text-black">
@@ -223,6 +267,28 @@
                                                         onerror="this.src='https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'">
                                                 </div>
                                             </div>
+
+                                            <!-- Contenido para vista expandida -->
+                                            <div *ngIf="vistaPrevia === 'expandida'" class="bg-white rounded-lg w-[95%] max-w-sm overflow-hidden relative mt-14">
+                                                <div class="banner-content">
+                                                    <div class="banner-text p-4 absolute top-0 left-0 right-0">
+                                                        <div class="title text-base font-bold mb-2 text-black">
+                                                            {{notificacionForm.titulo || 'Notification Title'}}
+                                                        </div>
+                                                        <div class="text text-sm text-black mb-4">
+                                                            {{notificacionForm.mensaje || 'Notification Text'}}
+                                                        </div>
+                                                    </div>
+                                                    <div class="pt-16 max-h-[50%] overflow-hidden">
+                                                        <img 
+                                                            *ngIf="notificacionForm.imagen || true"
+                                                            [src]="notificacionForm.imagen || 'https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'"
+                                                            alt="Notification Image"
+                                                            class="banner-image w-32 h-20 mx-auto object-contain" 
+                                                            onerror="this.src='https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'">
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <h5 class="text-center mt-2 text-sm text-gray-600">Android</h5>
@@ -231,7 +297,7 @@
 
                             <!-- Botón de prueba -->
                             <div class="mt-6">
-                                <button 
+                                <button
                                     class="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
                                     (click)="enviarMensajePrueba()">
                                     <mat-icon class="text-white">send</mat-icon>
