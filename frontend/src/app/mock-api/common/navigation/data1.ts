@@ -2,76 +2,23 @@
 import { FuseNavigationItem } from '@fuse/components/navigation';
 
 export const defaultNavigation1: FuseNavigationItem[] = [
+   
     {
         id      : 'apps.help-center',
-        title   : 'Centro de Ayuda',
-        subtitle: 'Guía para el Funcionario',
+        title   : 'Sistema de Notificaciones',
+        subtitle: 'INNOVA COCHABAMBA',
         type    : 'group',
         icon    : 'heroicons_outline:home',
-        children: [
-            {
-                id        : 'apps.help-center.home',
-                title     : 'Inicio',
-                type      : 'basic',
-                link      : '/apps/help-center',
-                roles     : [2],
-                exactMatch: true,
-            },
-            {
-                id   : 'apps.help-center.faqs',
-                title: 'Preguntas Frecuentes',
-                type : 'basic',
-                link : '/apps/help-center/faqs',
-                roles     : [1, 2],
-            },
-            {
-                id   : 'apps.help-center.guides',
-                title: 'Guias',
-                type : 'basic',
-                link : '/apps/help-center/guides',
-                roles     : [1, 2],
-            },
-            {
-                id   : 'apps.help-center.support',
-                title: 'Soporte',
-                type : 'basic',
-                link : '/apps/help-center/support',
-                roles     : [1, 2],
-            },
-        ],
-    },
-    {
-        id      : 'apps.help-center',
-        title   : 'Departamento de Soporte Técnico',
-        subtitle: 'Registro ',
-        type    : 'group',
-        icon    : 'heroicons_outline:home',
-        children: [
-            {
-                id      : 'apps.ecommerce',
-                title   : 'Equipos',
-                type    : 'basic',
-                icon    : 'heroicons_outline:computer-desktop',
-                link : '/apps/ecommerce/inventory',
-                roles     : [1, 2],
-                    
-            },
+        children: [           
             {
                 id   : 'apps.scrumboard',
-                title: 'Recepción de Tareas',
+                title: 'Envio de Notificaciones Push',
                 type : 'basic',
-                icon : 'heroicons_outline:check-circle',
+                icon : 'heroicons_outline:paper-airplane', // Icono de envio
                 link : '/apps/tasks',
                 roles     : [1, 2],
             },
-            {
-                id   : 'apps.scrumboard',
-                title: 'Mis Asignaciones',
-                type : 'basic',
-                icon : 'heroicons_outline:view-columns',
-                link : '/apps/scrumboard/asistencia-sitio',
-                roles     : [1, 2],
-            },
+           
             {
                 id   : 'reportes',
                 title: 'Reportes',

@@ -77,36 +77,91 @@
                                 </div>
                             </div>
 
-                            <!-- Filtros en grid -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <!-- Roles -->
-                                <div>
-                                    <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                        Roles
-                                    </label>
-                                    <mat-select 
-                                        [(ngModel)]="notificacionForm.roles" 
-                                        multiple 
-                                        class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
-                                        <mat-option *ngFor="let rol of rolesDisponibles" [value]="rol.value">
-                                            {{rol.label}}
-                                        </mat-option>
-                                    </mat-select>
+                            <!-- Sección de Tipo de Envío -->
+                            <div class="mb-6">
+                                <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    Tipo de Envío
+                                </label>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <button 
+                                        *ngFor="let tipo of tiposEnvio"
+                                        (click)="cambiarTipoEnvio(tipo.value)"
+                                        class="px-4 py-2 rounded-lg transition-all cursor-pointer 
+                                               hover:scale-105 active:scale-95
+                                               w-full
+                                               {{ tipoEnvio === tipo.value 
+                                                  ? 'bg-blue-500 text-white' 
+                                                  : 'bg-blue-100 text-blue-800 opacity-50' }}
+                                               dark:{{ tipoEnvio === tipo.value 
+                                                       ? 'bg-blue-600 text-white' 
+                                                       : 'bg-blue-900 text-blue-300 opacity-50' }}">
+                                        {{tipo.label}}
+                                    </button>
                                 </div>
+                            </div>
 
-                                <!-- Unidades -->
-                                <div>
-                                    <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                        Unidades
-                                    </label>
-                                    <mat-select 
-                                        [(ngModel)]="notificacionForm.unidades" 
-                                        multiple 
-                                        class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
-                                        <mat-option *ngFor="let unidad of unidadesDisponibles" [value]="unidad">
-                                            {{unidad}}
-                                        </mat-option>
-                                    </mat-select>
+                            <!-- Filtros de Grupo (mostrar solo si tipo de envío es 'grupo') -->
+                            <div *ngIf="tipoEnvio === 'grupo'" class="space-y-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <!-- Roles -->
+                                    <div>
+                                        <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            Roles
+                                        </label>
+                                        <mat-select 
+                                            [(ngModel)]="notificacionForm.roles" 
+                                            multiple 
+                                            class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
+                                            <mat-option *ngFor="let rol of rolesDisponibles" [value]="rol.value">
+                                                {{rol.label}}
+                                            </mat-option>
+                                        </mat-select>
+                                    </div>
+
+                                    <!-- Unidades -->
+                                    <div>
+                                        <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            Unidades
+                                        </label>
+                                        <mat-select 
+                                            [(ngModel)]="notificacionForm.unidades" 
+                                            multiple 
+                                            class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
+                                            <mat-option *ngFor="let unidad of unidadesDisponibles" [value]="unidad">
+                                                {{unidad}}
+                                            </mat-option>
+                                        </mat-select>
+                                    </div>
+
+                                    <!-- Estados -->
+                                    <div>
+                                        <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            Estados
+                                        </label>
+                                        <mat-select 
+                                            [(ngModel)]="notificacionForm.estados" 
+                                            multiple 
+                                            class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
+                                            <mat-option *ngFor="let estado of estadosDisponibles" [value]="estado">
+                                                {{estado}}
+                                            </mat-option>
+                                        </mat-select>
+                                    </div>
+
+                                    <!-- Tipos -->
+                    <div>
+                                        <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            Tipos
+                                        </label>
+                                        <mat-select 
+                                            [(ngModel)]="notificacionForm.tipos" 
+                                            multiple 
+                                            class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
+                                            <mat-option *ngFor="let tipo of tiposDisponibles" [value]="tipo">
+                                                {{tipo}}
+                                            </mat-option>
+                                        </mat-select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -149,7 +204,7 @@
 
                             <!-- Botones de vista -->
                             <div class="flex flex-col sm:flex-row justify-center gap-3 mb-6">
-                                <button
+                        <button
                                     (click)="cambiarVistaPrevia('inicial')"
                                     class="px-4 sm:px-6 py-2 rounded-lg transition-all cursor-pointer 
                                            hover:scale-105 active:scale-95
@@ -157,8 +212,8 @@
                                            {{ vistaPrevia === 'inicial' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-500' }}
                                            dark:{{ vistaPrevia === 'inicial' ? 'bg-blue-600 text-white' : 'bg-blue-900 text-blue-300' }}">
                                     Estado inicial
-                                </button>
-                                <button
+                        </button>
+                        <button
                                     (click)="cambiarVistaPrevia('expandida')"
                                     class="px-4 sm:px-6 py-2 rounded-lg transition-all cursor-pointer 
                                            hover:scale-105 active:scale-95
@@ -166,7 +221,7 @@
                                            {{ vistaPrevia === 'expandida' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-500' }}
                                            dark:{{ vistaPrevia === 'expandida' ? 'bg-blue-600 text-white' : 'bg-blue-900 text-blue-300' }}">
                                     Vista expandida
-                                </button>
+                        </button>
                             </div>
 
                             <div class="space-y-6">
@@ -200,8 +255,8 @@
                                                         alt="Notification Image"
                                                         class="banner-image w-16 h-16 rounded-md ml-2 object-cover"
                                                         onerror="this.src='https://www.gstatic.com/mobilesdk/180130_mobilesdk/images/image_placeholder.png'">
-                                                </div>
-                                            </div>
+                    </div>
+                </div>
 
                                             <!-- Contenido para vista expandida -->
                                             <div *ngIf="vistaPrevia === 'expandida'" class="bg-white rounded-lg w-[95%] max-w-sm overflow-hidden relative mt-14">

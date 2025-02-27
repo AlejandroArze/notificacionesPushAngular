@@ -73,6 +73,16 @@ export class TasksListComponent implements OnInit {
         'Consultoría'
     ];
 
+    // Añadir nueva propiedad para tipo de envío
+    tipoEnvio: 'individual' | 'grupo' | 'todos' = 'todos';
+
+    // Tipos de envío disponibles
+    tiposEnvio = [
+        { value: 'individual', label: 'Individual' },
+        { value: 'grupo', label: 'Grupo Específico' },
+        { value: 'todos', label: 'Todos los Usuarios' }
+    ];
+
     constructor(
         private _tasksService: TasksService,
         private _snackBar: MatSnackBar,
@@ -88,8 +98,34 @@ export class TasksListComponent implements OnInit {
         this.vistaPrevia = vista;
     }
 
+    // Método para cambiar tipo de envío
+    cambiarTipoEnvio(tipo: 'individual' | 'grupo' | 'todos') {
+        this.tipoEnvio = tipo;
+        
+        // Limpiar filtros si no es grupo
+        if (tipo !== 'grupo') {
+            this.notificacionForm.roles = [];
+            this.notificacionForm.unidades = [];
+            this.notificacionForm.estados = [];
+            this.notificacionForm.tipos = [];
+        }
+    }
+
+    // Método de validación considerando el tipo de envío
     validarFormularioNotificacion(): boolean {
-        return !!(this.notificacionForm.titulo && this.notificacionForm.mensaje);
+        // Validación base
+        const validacionBase = !!(this.notificacionForm.titulo && this.notificacionForm.mensaje);
+
+        // Validación adicional para envío por grupo
+        if (this.tipoEnvio === 'grupo') {
+            return validacionBase && 
+                   (this.notificacionForm.roles.length > 0 || 
+                    this.notificacionForm.unidades.length > 0 || 
+                    this.notificacionForm.estados.length > 0 || 
+                    this.notificacionForm.tipos.length > 0);
+        }
+
+        return validacionBase;
     }
 
     previsualizarDestinatarios() {
