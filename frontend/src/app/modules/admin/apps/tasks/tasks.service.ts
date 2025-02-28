@@ -988,25 +988,12 @@ export class TasksService
      * @param notificacion Detalles de la notificación
      * @param filtros Filtros para destinatarios
      */
-    enviarNotificacionPush(
-        notificacion: NotificacionPush, 
-        filtros?: FiltroNotificacion
-    ): Observable<any> {
-        return this._httpClient.post<any>(
-            `${this.baseUrl}/notificaciones/enviar`, 
-            { notificacion, filtros }
-        ).pipe(
-            map(response => {
-                // Actualizar lista de notificaciones si es necesario
-                const notificacionesActuales = this._notificaciones.value;
-                this._notificaciones.next([...notificacionesActuales, notificacion]);
-                return response;
-            }),
-            catchError(error => {
-                console.error('Error al enviar notificación', error);
-                return throwError(() => new Error('No se pudo enviar la notificación'));
-            })
-        );
+    enviarNotificacionPush(notificacion: NotificacionPush) {
+        const endpoint = notificacion.fechaProgramada 
+            ? '/api/notificaciones/programar'
+            : '/api/notificaciones/enviar';
+
+        return this._httpClient.post(endpoint, notificacion);
     }
 
     /**
@@ -1054,6 +1041,10 @@ export class TasksService
 
     subirImagenNotificacion(formData: FormData) {
         return this._httpClient.post('/api/notificaciones/imagen', formData);
+    }
+
+    validarContrasena(contrasena: string): Observable<boolean> {
+        return this._httpClient.post<boolean>(`${this.baseUrl}/validar-contrasena`, { contrasena });
     }
 
 }

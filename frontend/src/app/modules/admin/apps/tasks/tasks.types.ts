@@ -83,7 +83,7 @@ export interface NotificacionPush {
     servicioId?: number;
     destinatarios: {
         usuarioId: string;
-        estado: 'enviada' | 'leída' | 'no_leída';
+        estado: 'enviada' | 'leída' | 'no_leída' | 'pendiente' | 'programada';
     }[];
     tipoEnvio: 'individual' | 'grupo' | 'todos';
     payload?: any;

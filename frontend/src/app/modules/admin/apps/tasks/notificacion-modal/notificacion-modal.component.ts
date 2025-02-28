@@ -29,6 +29,58 @@ import {
 } from '../tasks.types';
 
 @Component({
+    selector: 'app-confirmacion-modal',
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatDialogModule,
+        MatInputModule,
+        MatFormFieldModule,
+        MatButtonModule
+    ],
+    template: `
+    <h2 mat-dialog-title>Confirmar Envío de Notificación</h2>
+    <mat-dialog-content>
+        <p>Por seguridad, ingrese su contraseña para continuar.</p>
+        <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Contraseña</mat-label>
+            <input matInput 
+                   type="password" 
+                   [(ngModel)]="contrasena" 
+                   placeholder="Ingrese su contraseña">
+        </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions class="flex justify-end space-x-2">
+        <button mat-stroked-button (click)="cancelar()">Cancelar</button>
+        <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="confirmar()"
+            [disabled]="!contrasena">
+            Confirmar
+        </button>
+    </mat-dialog-actions>
+    `
+})
+export class ConfirmacionModalComponent {
+    contrasena: string = '';
+
+    constructor(
+        public dialogRef: MatDialogRef<ConfirmacionModalComponent>,
+        @Inject(MAT_DIALOG_DATA) public data: any
+    ) {}
+
+    cancelar(): void {
+        this.dialogRef.close(false);
+    }
+
+    confirmar(): void {
+        this.dialogRef.close(this.contrasena);
+    }
+}
+
+@Component({
     selector: 'app-notificacion-modal',
     templateUrl: './notificacion-modal.component.html',
     styleUrls: ['./notificacion-modal.component.scss'],

@@ -1,0 +1,17 @@
+.mat-expansion-panel {
+    &.shadow-none {
+        box-shadow: none !important;
+    }
+    
+    .mat-expansion-panel-header {
+        &:hover {
+            background: rgba(59, 130, 246, 0.04) !important;
+        }
+    }
+    
+    &.mat-expanded {
+        .mat-expansion-panel-header {
+            background: rgba(59, 130, 246, 0.04) !important;
+        }
+    }
+} 

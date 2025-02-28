@@ -149,7 +149,7 @@
                                     </div>
 
                                     <!-- Tipos -->
-                    <div>
+                                    <div>
                                         <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                                             Tipos
                                         </label>
@@ -163,6 +163,158 @@
                                         </mat-select>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Después de la sección de filtros y antes de los botones de acción -->
+                            <div class="space-y-6">
+                                <!-- Selector de programación -->
+                                <mat-expansion-panel class="shadow-none border border-gray-200 dark:border-gray-700 rounded-lg">
+                                    <mat-expansion-panel-header class="px-4 py-3">
+                                        <mat-panel-title class="flex items-center">
+                                            <mat-icon class="mr-2 text-blue-500">schedule</mat-icon>
+                                            <span class="text-sm font-semibold">Programar envío</span>
+                                        </mat-panel-title>
+                                    </mat-expansion-panel-header>
+
+                                    <div class="space-y-4 p-4">
+                                        <!-- Switch para activar/desactivar programación -->
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Activar programación</span>
+                                            <mat-slide-toggle
+                                                [(ngModel)]="notificacionForm.programarEnvio"
+                                                (change)="onProgramacionChange()"
+                                                color="primary">
+                                            </mat-slide-toggle>
+                                        </div>
+
+                                        <!-- Campos de programación (visibles solo si está activado) -->
+                                        <div *ngIf="notificacionForm.programarEnvio" class="space-y-4">
+                                            <!-- Tipo de programación -->
+                                            <div>
+                                                <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                    Tipo de programación
+                                                </label>
+                                                <mat-button-toggle-group [(ngModel)]="notificacionForm.tipoProgramacion" class="w-full">
+                                                    <mat-button-toggle value="unica" class="w-1/2">
+                                                        <mat-icon class="mr-2">event</mat-icon>
+                                                        Única vez
+                                                    </mat-button-toggle>
+                                                    <mat-button-toggle value="recurrente" class="w-1/2">
+                                                        <mat-icon class="mr-2">repeat</mat-icon>
+                                                        Recurrente
+                                                    </mat-button-toggle>
+                                                </mat-button-toggle-group>
+                                            </div>
+
+                                            <!-- Programación única -->
+                                            <div *ngIf="notificacionForm.tipoProgramacion === 'unica'" 
+                                                 class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <!-- Fecha -->
+                                                <mat-form-field appearance="outline" class="w-full">
+                                                    <mat-label>Fecha de envío</mat-label>
+                                                    <input matInput
+                                                        [matDatepicker]="picker"
+                                                        [(ngModel)]="notificacionForm.fechaProgramada"
+                                                        [min]="minDate"
+                                                        placeholder="DD/MM/YYYY">
+                                                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                                    <mat-datepicker #picker></mat-datepicker>
+                                                </mat-form-field>
+
+                                                <!-- Hora -->
+                                                <mat-form-field appearance="outline" class="w-full">
+                                                    <mat-label>Hora de envío</mat-label>
+                                                    <mat-select 
+                                                        [(ngModel)]="notificacionForm.horaProgramada"
+                                                        placeholder="Selecciona una hora">
+                                                        <mat-option 
+                                                            *ngFor="let hora of horasDisponibles" 
+                                                            [value]="hora"
+                                                            (click)="seleccionarHora(hora)">
+                                                            {{hora}}
+                                                        </mat-option>
+                                                    </mat-select>
+                                                    <mat-icon matSuffix>schedule</mat-icon>
+                                                </mat-form-field>
+                                            </div>
+
+                                            <!-- Programación recurrente -->
+                                            <div *ngIf="notificacionForm.tipoProgramacion === 'recurrente'" class="space-y-4">
+                                                <!-- Frecuencia -->
+                                                <mat-form-field appearance="outline" class="w-full">
+                                                    <mat-label>Frecuencia</mat-label>
+                                                    <mat-select [(ngModel)]="notificacionForm.frecuencia">
+                                                        <mat-option value="diaria">Diaria</mat-option>
+                                                        <mat-option value="semanal">Semanal</mat-option>
+                                                        <mat-option value="mensual">Mensual</mat-option>
+                                                    </mat-select>
+                                                </mat-form-field>
+
+                                                <!-- Días de la semana (si es semanal) -->
+                                                <div *ngIf="notificacionForm.frecuencia === 'semanal'" class="space-y-2">
+                                                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                        Días de envío
+                                                    </label>
+                                                    <div class="flex flex-wrap gap-2">
+                                                        <mat-checkbox *ngFor="let dia of diasSemana" 
+                                                                    [(ngModel)]="notificacionForm.diasSeleccionados[dia.valor]"
+                                                                    class="mr-4">
+                                                            {{dia.nombre}}
+                                                        </mat-checkbox>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Hora de envío para programación recurrente -->
+                                                <mat-form-field appearance="outline" class="w-full">
+                                                    <mat-label>Hora de envío</mat-label>
+                                                    <mat-select 
+                                                        [(ngModel)]="notificacionForm.horaRecurrente"
+                                                        placeholder="Selecciona una hora">
+                                                        <mat-option 
+                                                            *ngFor="let hora of horasDisponibles" 
+                                                            [value]="hora"
+                                                            (click)="seleccionarHora(hora)">
+                                                            {{hora}}
+                                                        </mat-option>
+                                                    </mat-select>
+                                                    <mat-icon matSuffix>schedule</mat-icon>
+                                                </mat-form-field>
+
+                                                <!-- Fecha de inicio y fin -->
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <mat-form-field appearance="outline">
+                                                        <mat-label>Fecha de inicio</mat-label>
+                                                        <input matInput
+                                                            [matDatepicker]="pickerInicio"
+                                                            [(ngModel)]="notificacionForm.fechaInicio"
+                                                            [min]="minDate">
+                                                        <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+                                                        <mat-datepicker #pickerInicio></mat-datepicker>
+                                                    </mat-form-field>
+
+                                                    <mat-form-field appearance="outline">
+                                                        <mat-label>Fecha de fin (opcional)</mat-label>
+                                                        <input matInput
+                                                            [matDatepicker]="pickerFin"
+                                                            [(ngModel)]="notificacionForm.fechaFin"
+                                                            [min]="notificacionForm.fechaInicio">
+                                                        <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
+                                                        <mat-datepicker #pickerFin></mat-datepicker>
+                                                    </mat-form-field>
+                                                </div>
+                                            </div>
+
+                                            <!-- Mensaje informativo -->
+                                            <div class="text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex items-start">
+                                                <mat-icon class="mr-2 text-blue-500">info</mat-icon>
+                                                <span>
+                                                    La notificación se enviará automáticamente según la programación establecida.
+                                                    Asegúrate de que todos los parámetros sean correctos.
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </mat-expansion-panel>
                             </div>
 
                             <!-- Botones de acción -->
@@ -181,8 +333,10 @@
                                            disabled:opacity-50 flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95
                                            w-full sm:w-auto"
                                     (click)="previsualizarDestinatarios()"
-                                    [disabled]="!validarFormularioNotificacion()">
-                                    <span class="text-white">Enviar Notificación</span>
+                                    [disabled]="!validarFormularioNotificacion() || !validarProgramacion()">
+                                    <span class="text-white">
+                                        {{ notificacionForm.programarEnvio ? 'Programar Envío de Notificación' : 'Enviar Ahora Notificación' }}
+                                    </span>
                                 </button>
                             </div>
                         </div>
