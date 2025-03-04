@@ -223,6 +223,12 @@ export class TasksListComponent implements OnInit {
     usuarioBusquedaNombre: string = '';
     usuarioBusquedaCarnet: string = '';
 
+    // Nueva propiedad para el usuario que envía la notificación
+    usuarioEnvio = {
+        id: '',
+        nombre: ''
+    };
+
     constructor(
         private _tasksService: TasksService,
         private _snackBar: MatSnackBar,
@@ -231,7 +237,24 @@ export class TasksListComponent implements OnInit {
     ) {}
 
     ngOnInit(): void {
-        // Optional: Add any initialization logic if needed
+        // Obtener información del usuario desde localStorage
+        this.cargarUsuarioActual();
+    }
+
+    cargarUsuarioActual() {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const userData = JSON.parse(userStr);
+                this.usuarioEnvio = {
+                    id: userData.data.usuarios_id, // Ajusta según la estructura de tu localStorage
+                    nombre: `${userData.data.nombres} ${userData.data.apellidos}`.trim()
+                };
+            } catch (error) {
+                console.error('Error al parsear datos de usuario', error);
+                this._snackBar.open('No se pudo cargar la información del usuario', 'Cerrar', { duration: 3000 });
+            }
+        }
     }
 
     // Métodos de notificación

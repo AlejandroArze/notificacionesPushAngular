@@ -87,6 +87,7 @@ export interface NotificacionPush {
     }[];
     tipoEnvio: 'individual' | 'grupo' | 'todos';
     payload?: any;
+    usuarioCreadorId?: string;
 }
 
 export interface FiltroNotificacion {

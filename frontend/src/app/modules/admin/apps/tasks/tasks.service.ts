@@ -998,11 +998,29 @@ export class TasksService
      * @param filtros Filtros para destinatarios
      */
     enviarNotificacionPush(notificacion: NotificacionPush) {
+        // Agregar el ID del usuario que envía la notificación
+        notificacion.usuarioCreadorId = this.obtenerIdUsuarioActual();
+
         const endpoint = notificacion.fechaProgramada 
             ? '/api/notificaciones/programar'
             : '/api/notificaciones/enviar';
 
         return this._httpClient.post(endpoint, notificacion);
+    }
+
+    // Método para obtener el ID del usuario actual
+    private obtenerIdUsuarioActual(): string {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const userData = JSON.parse(userStr);
+                return userData.data.usuarios_id;
+            } catch (error) {
+                console.error('Error al obtener ID de usuario', error);
+                return '';
+            }
+        }
+        return '';
     }
 
     /**
