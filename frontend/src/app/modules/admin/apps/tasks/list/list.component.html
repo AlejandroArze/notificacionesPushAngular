@@ -178,18 +178,16 @@
                                             <input matInput 
                                                    [(ngModel)]="usuarioBusquedaNombre"
                                                    (input)="onNombreChange()"
+                                                   [matAutocomplete]="nombreAuto"
                                                    placeholder="Buscar por nombre">
                                             <mat-icon matSuffix>search</mat-icon>
                                         </mat-form-field>
 
-                                        <!-- Lista de usuarios filtrados por nombre -->
-                                        <mat-selection-list *ngIf="usuariosFiltradosPorNombre.length > 0">
-                                            <mat-list-option 
-                                                *ngFor="let usuario of usuariosFiltradosPorNombre" 
-                                                (click)="seleccionarUsuario(usuario)">
+                                        <mat-autocomplete #nombreAuto="matAutocomplete" (optionSelected)="seleccionarUsuario($event.option.value)">
+                                            <mat-option *ngFor="let usuario of usuariosFiltradosPorNombre" [value]="usuario">
                                                 {{ usuario.nombre }} ({{ usuario.carnet }})
-                                            </mat-list-option>
-                                        </mat-selection-list>
+                                            </mat-option>
+                                        </mat-autocomplete>
                                     </div>
 
                                     <!-- Búsqueda por Carnet -->
@@ -202,18 +200,16 @@
                                             <input matInput 
                                                    [(ngModel)]="usuarioBusquedaCarnet"
                                                    (input)="onCarnetChange()"
+                                                   [matAutocomplete]="carnetAuto"
                                                    placeholder="Buscar por carnet">
                                             <mat-icon matSuffix>search</mat-icon>
                                         </mat-form-field>
 
-                                        <!-- Lista de usuarios filtrados por carnet -->
-                                        <mat-selection-list *ngIf="usuariosFiltradosPorCarnet.length > 0">
-                                            <mat-list-option 
-                                                *ngFor="let usuario of usuariosFiltradosPorCarnet" 
-                                                (click)="seleccionarUsuario(usuario)">
+                                        <mat-autocomplete #carnetAuto="matAutocomplete" (optionSelected)="seleccionarUsuario($event.option.value)">
+                                            <mat-option *ngFor="let usuario of usuariosFiltradosPorCarnet" [value]="usuario">
                                                 {{ usuario.nombre }} ({{ usuario.carnet }})
-                                            </mat-list-option>
-                                        </mat-selection-list>
+                                            </mat-option>
+                                        </mat-autocomplete>
                                     </div>
                                 </div>
 

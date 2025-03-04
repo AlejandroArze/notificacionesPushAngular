@@ -29,6 +29,7 @@ import * as moment from 'moment';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ConfirmacionModalComponent } from '../notificacion-modal/notificacion-modal.component';
 import { MatListModule } from '@angular/material/list';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 // Registrar el locale español
 registerLocaleData(localeEs);
@@ -81,7 +82,8 @@ interface UsuarioSeleccionable {
         MatInputModule,
         MatDialogModule,
         ConfirmacionModalComponent,
-        MatListModule
+        MatListModule,
+        MatAutocompleteModule
     ]
 })
 export class TasksListComponent implements OnInit {
@@ -557,9 +559,10 @@ export class TasksListComponent implements OnInit {
             return;
         }
         
-        this.usuariosFiltradosPorNombre = this.usuariosDisponibles.filter(usuario => 
-            usuario.nombre.toLowerCase().includes(termino.toLowerCase())
-        );
+        this._tasksService.buscarUsuariosPorNombre(termino)
+            .subscribe(usuarios => {
+                this.usuariosFiltradosPorNombre = usuarios;
+            });
     }
 
     // Método para filtrar usuarios por carnet
@@ -569,9 +572,10 @@ export class TasksListComponent implements OnInit {
             return;
         }
         
-        this.usuariosFiltradosPorCarnet = this.usuariosDisponibles.filter(usuario => 
-            usuario.carnet.toLowerCase().includes(termino.toLowerCase())
-        );
+        this._tasksService.buscarUsuariosPorCarnet(termino)
+            .subscribe(usuarios => {
+                this.usuariosFiltradosPorCarnet = usuarios;
+            });
     }
 
     // Método para seleccionar usuario

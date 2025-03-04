@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Tag, Task, Servicio, InventoryPagination, InventoryEquipment, NotificacionPush, FiltroNotificacion, DestinatarioNotificacion } from 'app/modules/admin/apps/tasks/tasks.types';
-import { BehaviorSubject, filter, map, Observable, of, switchMap, take, tap, throwError, catchError } from 'rxjs';
+import { BehaviorSubject, filter, map, Observable, of, switchMap, take, tap, throwError, catchError, delay } from 'rxjs';
 import { environment } from 'environments/environment'; 
 import { forkJoin } from 'rxjs';
 
@@ -22,6 +22,15 @@ export interface Empleado {
     telefono_coorp?: string;
     nro_item?: string;
     // ... otros campos
+}
+
+// Agregar esta interfaz si no existe
+export interface Usuario {
+    id: number;
+    nombre: string;
+    carnet: string;
+    rol?: string;
+    unidad?: string;
 }
 
 @Injectable({providedIn: 'root'})
@@ -1047,4 +1056,107 @@ export class TasksService
         return this._httpClient.post<boolean>(`${this.baseUrl}/validar-contrasena`, { contrasena });
     }
 
+    // Método para obtener usuarios de ejemplo
+    obtenerUsuarios(termino?: string): Observable<Usuario[]> {
+        // Datos de ejemplo de usuarios
+        const usuariosEjemplo: Usuario[] = [
+            { 
+                id: 1, 
+                nombre: 'Juan Pérez', 
+                carnet: 'JP001', 
+                rol: 'usuario', 
+                unidad: 'Sistemas' 
+            },
+            { 
+                id: 2, 
+                nombre: 'María González', 
+                carnet: 'MG002', 
+                rol: 'tecnico', 
+                unidad: 'Soporte' 
+            },
+            { 
+                id: 3, 
+                nombre: 'Carlos Rodríguez', 
+                carnet: 'CR003', 
+                rol: 'admin', 
+                unidad: 'Infraestructura' 
+            },
+            { 
+                id: 4, 
+                nombre: 'Ana Martínez', 
+                carnet: 'AM004', 
+                rol: 'usuario', 
+                unidad: 'Recursos Humanos' 
+            },
+            { 
+                id: 5, 
+                nombre: 'Luis Fernández', 
+                carnet: 'LF005', 
+                rol: 'tecnico', 
+                unidad: 'Sistemas' 
+            },
+            { 
+                id: 6, 
+                nombre: 'Elena Sánchez', 
+                carnet: 'ES006', 
+                rol: 'usuario', 
+                unidad: 'Soporte' 
+            },
+            { 
+                id: 7, 
+                nombre: 'Pedro Ramírez', 
+                carnet: 'PR007', 
+                rol: 'admin', 
+                unidad: 'Infraestructura' 
+            },
+            { 
+                id: 8, 
+                nombre: 'Laura Torres', 
+                carnet: 'LT008', 
+                rol: 'tecnico', 
+                unidad: 'Recursos Humanos' 
+            },
+            { 
+                id: 9, 
+                nombre: 'Miguel Hernández', 
+                carnet: 'MH009', 
+                rol: 'usuario', 
+                unidad: 'Sistemas' 
+            },
+            { 
+                id: 10, 
+                nombre: 'Sofía Díaz', 
+                carnet: 'SD010', 
+                rol: 'tecnico', 
+                unidad: 'Soporte' 
+            }
+        ];
+
+        // Convertir a Observable
+        return of(usuariosEjemplo).pipe(
+            // Si se proporciona un término, filtrar
+            map(usuarios => {
+                if (!termino) return usuarios;
+                
+                termino = termino.toLowerCase().trim();
+                
+                return usuarios.filter(usuario => 
+                    usuario.nombre.toLowerCase().includes(termino) || 
+                    usuario.carnet.toLowerCase().includes(termino)
+                );
+            }),
+            // Simular un retraso de red
+            delay(300)
+        );
+    }
+
+    // Método para buscar usuarios por nombre
+    buscarUsuariosPorNombre(nombre: string): Observable<Usuario[]> {
+        return this.obtenerUsuarios(nombre);
+    }
+
+    // Método para buscar usuarios por carnet
+    buscarUsuariosPorCarnet(carnet: string): Observable<Usuario[]> {
+        return this.obtenerUsuarios(carnet);
+    }
 }
