@@ -1,7 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { environment } from 'environments/environment';
+import { Notificacion, NotificacionPaginacion } from './finance.types';
+import { map } from 'rxjs/operators';
 
 export interface ServiceResponse {
     message: string;
@@ -171,5 +173,123 @@ export class FinanceService {
         }
 
         return this._httpClient.get<MetricsResponse>(`${this._apiUrl}/service/metrics`, { params: httpParams });
+    }
+
+    // Método para obtener notificaciones de ejemplo
+    obtenerNotificaciones(): Observable<Notificacion[]> {
+        // Datos de ejemplo
+        const notificacionesEjemplo: Notificacion[] = [
+            {
+                id: 1,
+                uuid: 'uuid-1',
+                titulo: 'Mantenimiento Programado',
+                mensaje: 'Se realizará mantenimiento en el sistema el próximo lunes',
+                tipoEnvio: 'grupo',
+                roles: ['admin', 'tecnico'],
+                unidades: ['Sistemas', 'Soporte'],
+                programarEnvio: true,
+                fechaProgramada: new Date('2024-02-15T10:00:00'),
+                estado: 'programada',
+                usuarioCreadorId: 123,
+                destinatarios: [
+                    { usuarioId: '1', estado: 'pendiente' },
+                    { usuarioId: '2', estado: 'pendiente' }
+                ]
+            },
+            {
+                id: 2,
+                uuid: 'uuid-2',
+                titulo: 'Actualización de Sistemas',
+                mensaje: 'Nueva versión del software disponible',
+                tipoEnvio: 'todos',
+                programarEnvio: false,
+                estado: 'enviada',
+                usuarioCreadorId: 456,
+                destinatarios: [
+                    { usuarioId: '3', estado: 'leída' },
+                    { usuarioId: '4', estado: 'enviada' }
+                ]
+            }
+        ];
+
+        return of(notificacionesEjemplo);
+    }
+
+    // Método para obtener una notificación por ID (ejemplo)
+    obtenerNotificacionPorId(id: number): Observable<Notificacion> {
+        return this.obtenerNotificaciones().pipe(
+            map(notificaciones => notificaciones.find(n => n.id === id))
+        );
+    }
+
+    // Método para obtener notificaciones paginadas
+    obtenerNotificacionesPaginadas(page: number = 1, limit: number = 10): Observable<NotificacionPaginacion> {
+        // Datos de ejemplo
+        const notificacionesEjemplo: Notificacion[] = [
+            {
+                id: 1,
+                uuid: 'uuid-1',
+                titulo: 'Mantenimiento Programado',
+                mensaje: 'Se realizará mantenimiento en el sistema el próximo lunes',
+                tipoEnvio: 'grupo',
+                roles: ['admin', 'tecnico'],
+                unidades: ['Sistemas', 'Soporte'],
+                programarEnvio: true,
+                fechaProgramada: new Date('2024-02-15T10:00:00'),
+                estado: 'programada',
+                usuarioCreadorId: 123,
+                responsableCreacion: 'Juan Pérez',
+                destinatarios: [
+                    { usuarioId: '1', nombre: 'María González', estado: 'pendiente' },
+                    { usuarioId: '2', nombre: 'Carlos Rodríguez', estado: 'pendiente' }
+                ]
+            },
+            {
+                id: 2,
+                uuid: 'uuid-2',
+                titulo: 'Actualización de Sistemas',
+                mensaje: 'Nueva versión del software disponible',
+                tipoEnvio: 'todos',
+                programarEnvio: false,
+                estado: 'enviada',
+                usuarioCreadorId: 456,
+                responsableCreacion: 'Ana Martínez',
+                destinatarios: [
+                    { usuarioId: '3', nombre: 'Luis Fernández', estado: 'leída' },
+                    { usuarioId: '4', nombre: 'Elena Sánchez', estado: 'enviada' }
+                ]
+            },
+            // Agregar más notificaciones de ejemplo para simular paginación
+            {
+                id: 3,
+                uuid: 'uuid-3',
+                titulo: 'Capacitación de Seguridad',
+                mensaje: 'Próximo taller de seguridad informática',
+                tipoEnvio: 'grupo',
+                roles: ['tecnico'],
+                unidades: ['Sistemas'],
+                programarEnvio: true,
+                fechaProgramada: new Date('2024-03-10T14:00:00'),
+                estado: 'programada',
+                usuarioCreadorId: 789,
+                responsableCreacion: 'Pedro Ramírez',
+                destinatarios: [
+                    { usuarioId: '5', nombre: 'Laura Torres', estado: 'pendiente' }
+                ]
+            }
+        ];
+
+        // Simular paginación
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedData = notificacionesEjemplo.slice(startIndex, endIndex);
+
+        return of({
+            data: paginatedData,
+            total: notificacionesEjemplo.length,
+            page: page,
+            perPage: limit,
+            totalPages: Math.ceil(notificacionesEjemplo.length / limit)
+        });
     }
 }

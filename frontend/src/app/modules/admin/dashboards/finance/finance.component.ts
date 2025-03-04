@@ -23,6 +23,8 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { environment } from 'environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { Notificacion } from './finance.types';
 
 // Registrar el plugin
 Chart.register(ChartDataLabels);
@@ -49,7 +51,8 @@ interface jsPDFWithPlugin extends jsPDF {
         MatNativeDateModule,
         MatInputModule,
         MatIconModule,
-        MatTooltipModule
+        MatTooltipModule,
+        MatExpansionModule
     ],
 })
 export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -57,6 +60,7 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
     @ViewChild('distribucionChart') distribucionChart: ElementRef;
     @ViewChild('rendimientoChart') rendimientoChart: ElementRef;
     @ViewChild('tiemposChart') tiemposChart: ElementRef;
+    @ViewChild('notificacionesPaginator') notificacionesPaginator: MatPaginator;
     
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
@@ -116,6 +120,12 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
     // Variable para almacenar las URLs de las imágenes
     private imageUrls: Map<number, string> = new Map();
 
+    notificaciones: Notificacion[] = [];
+    notificationPageSize: number = 10;
+    totalNotificaciones: number = 0;
+    paginaActualNotificaciones: number = 1;
+    selectedNotificacion: Notificacion | null = null;
+
     constructor(
         private _financeService: FinanceService,
         private _scrumboardService: ScrumboardService,
@@ -166,6 +176,7 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
             });
 
         this.consultar();
+        this.cargarNotificaciones();
     }
 
     ngAfterViewInit() {
@@ -180,6 +191,15 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
 
         // Cargar métricas iniciales
         this.loadMetrics();
+
+        // Configurar paginación de notificaciones
+        if (this.notificacionesPaginator) {
+            this.notificacionesPaginator.page
+                .pipe(takeUntil(this._unsubscribeAll))
+                .subscribe(() => {
+                    this.cargarNotificaciones(this.notificacionesPaginator.pageIndex + 1);
+                });
+        }
     }
 
     ngOnDestroy(): void {
@@ -606,117 +626,121 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
         // Destruir gráficos existentes
         Object.values(this.charts).forEach(chart => chart.destroy());
 
-        // Gráfico de distribución de tipos
-        this.charts['distribucion'] = new Chart(this.distribucionChart.nativeElement, {
-            type: 'pie',
-            plugins: [ChartDataLabels],
-            data: {
-                labels: this.metrics.distribucionTipos.data.map(item => item.tipo),
-                datasets: [{
-                    data: this.metrics.distribucionTipos.data.map(item => item.cantidad),
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.8)',    // Rojo para el primero
-                        'rgba(75, 192, 192, 0.8)',    // Verde claro para REMOTA
-                        'rgba(255, 206, 86, 0.8)',    // Amarillo
-                        'rgba(25, 118, 210, 0.8)'     // Azul más fuerte
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#64748B',
+        // Verificar que los elementos del DOM existan antes de crear los gráficos
+        if (this.distribucionChart && this.distribucionChart.nativeElement) {
+            this.charts['distribucion'] = new Chart(this.distribucionChart.nativeElement, {
+                type: 'pie',
+                plugins: [ChartDataLabels],
+                data: {
+                    labels: this.metrics.distribucionTipos.data.map(item => item.tipo),
+                    datasets: [{
+                        data: this.metrics.distribucionTipos.data.map(item => item.cantidad),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',    // Rojo para el primero
+                            'rgba(75, 192, 192, 0.8)',    // Verde claro para REMOTA
+                            'rgba(255, 206, 86, 0.8)',    // Amarillo
+                            'rgba(25, 118, 210, 0.8)'     // Azul más fuerte
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#64748B',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#3B82F6',
+                            formatter: (value, context) => {
+                                const percentage = this.metrics?.distribucionTipos.data[context.dataIndex].porcentaje;
+                                return percentage ? `${percentage}%` : '';
+                            },
                             font: {
                                 size: 12
                             }
                         }
-                    },
-                    datalabels: {
-                        color: '#3B82F6',
-                        formatter: (value, context) => {
-                            const percentage = this.metrics?.distribucionTipos.data[context.dataIndex].porcentaje;
-                            return percentage ? `${percentage}%` : '';
-                        },
-                        font: {
-                            size: 12
-                        }
                     }
                 }
-            }
-        });
+            });
+        }
 
-        // Gráfico de rendimiento de técnicos
-        const tecnicos = [...this.metrics.rendimientoTecnicos]
-            .sort((a, b) => b.total_servicios - a.total_servicios);
+        // Similar verificación para otros gráficos
+        if (this.rendimientoChart && this.rendimientoChart.nativeElement) {
+            const tecnicos = [...this.metrics.rendimientoTecnicos]
+                .sort((a, b) => b.total_servicios - a.total_servicios);
 
-        this.charts['rendimiento'] = new Chart(this.rendimientoChart.nativeElement, {
-            type: 'bar',
-            plugins: [ChartDataLabels],
-            data: {
-                labels: tecnicos.map(tec => 
-                    tec.tecnico.length > 20 ? tec.tecnico.substring(0, 20) + '...' : tec.tecnico
-                ),
-                datasets: [{
-                    label: 'Total Servicios',
-                    data: tecnicos.map(tec => tec.total_servicios),
-                    backgroundColor: 'rgba(54, 162, 235, 0.8)'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: 'y',
-                plugins: {
-                    legend: {
-                        display: false
-            },
-            tooltip: {
-                        enabled: true,
-                        callbacks: {
-                            label: (context) => {
-                                const tecnico = tecnicos[context.dataIndex];
-                                return `${tecnico.tecnico}: ${tecnico.total_servicios} servicios`;
-                            }
-                        }
-                    },
-                    datalabels: {
-                        color: '#3B82F6',
-                        anchor: 'end',
-                        align: 'right',
-                        formatter: (value) => value.toString(),
-                        font: {
-                            weight: 'bold'
-                        },
-                        padding: 6
-                    }
+            this.charts['rendimiento'] = new Chart(this.rendimientoChart.nativeElement, {
+                type: 'bar',
+                plugins: [ChartDataLabels],
+                data: {
+                    labels: tecnicos.map(tec => 
+                        tec.tecnico.length > 20 ? tec.tecnico.substring(0, 20) + '...' : tec.tecnico
+                    ),
+                    datasets: [{
+                        label: 'Total Servicios',
+                        data: tecnicos.map(tec => tec.total_servicios),
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)'
+                    }]
                 },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Cantidad de Servicios'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: (context) => {
+                                    const tecnico = tecnicos[context.dataIndex];
+                                    return `${tecnico.tecnico}: ${tecnico.total_servicios} servicios`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#3B82F6',
+                            anchor: 'end',
+                            align: 'right',
+                            formatter: (value) => value.toString(),
+                            font: {
+                                weight: 'bold'
+                            },
+                            padding: 6
                         }
                     },
-                    y: {
-                        ticks: {
-                            callback: function(value: string | number) {
-                                // Asegurarnos de que value sea un número
-                                const index = typeof value === 'string' ? parseInt(value) : value;
-                                if (typeof index !== 'number') return '';
-                                
-                                const label = this.getLabelForValue(index);
-                                if (typeof label !== 'string') return '';
-                                
-                                return label.length > 20 ? label.substring(0, 20) + '...' : label;
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Servicios'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                callback: function(value: string | number) {
+                                    // Asegurarnos de que value sea un número
+                                    const index = typeof value === 'string' ? parseInt(value) : value;
+                                    if (typeof index !== 'number') return '';
+                                    
+                                    const label = this.getLabelForValue(index);
+                                    if (typeof label !== 'string') return '';
+                                    
+                                    return label.length > 20 ? label.substring(0, 20) + '...' : label;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
     }
 
     getMetricByTipo(tipo: string): { tiempo_promedio_horas: number; tiempo_promedio_minutos: number; tiempo_promedio_segundos: number; total_servicios: number } | undefined {
@@ -867,6 +891,19 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
         );
 
         return this.imageUrls.get(tecnicoId);
+    }
+
+    cargarNotificaciones(pagina: number = 1) {
+        this._financeService.obtenerNotificacionesPaginadas(pagina, this.notificationPageSize)
+            .subscribe(resultado => {
+                this.notificaciones = resultado.data;
+                this.totalNotificaciones = resultado.total;
+                this.paginaActualNotificaciones = resultado.page;
+            });
+    }
+
+    toggleNotificacionDetails(notificacion: Notificacion) {
+        this.selectedNotificacion = this.selectedNotificacion === notificacion ? null : notificacion;
     }
 }
 
