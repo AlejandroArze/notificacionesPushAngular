@@ -260,70 +260,7 @@
             </div>
         </div>
 
-        <!-- Tabla de resultados -->
-        <div class="w-full bg-card shadow rounded-2xl overflow-hidden">
-            <table mat-table [dataSource]="dataSource" class="w-full">
-                
-                <!-- Index Column -->
-                <ng-container matColumnDef="index">
-                    <th mat-header-cell *matHeaderCellDef> # </th>
-                    <td mat-cell *matCellDef="let row; let i = index"> 
-                        {{paginator.pageIndex * paginator.pageSize + i + 1}} 
-                    </td>
-                </ng-container>
-
-                <!-- Número Column -->
-                <ng-container matColumnDef="numero">
-                    <th mat-header-cell *matHeaderCellDef> Número </th>
-                    <td mat-cell *matCellDef="let row"> {{row.numero}} </td>
-                </ng-container>
-
-                <!-- Tipo Servicio Column -->
-                <ng-container matColumnDef="tipoServicio">
-                    <th mat-header-cell *matHeaderCellDef> Tipo de Servicio </th>
-                    <td mat-cell *matCellDef="let row"> {{row.tipo}} </td>
-                </ng-container>
-
-                <!-- Técnico Asignado Column -->
-                <ng-container matColumnDef="tecnicoAsignado">
-                    <th mat-header-cell *matHeaderCellDef> Técnico Asignado </th>
-                    <td mat-cell *matCellDef="let row"> {{getTecnicoNombre(row.tecnicoAsignado)}} </td>
-                </ng-container>
-
-                <!-- Fecha Inicio Column -->
-                <ng-container matColumnDef="fechaInicio">
-                    <th mat-header-cell *matHeaderCellDef> Fecha Inicio </th>
-                    <td mat-cell *matCellDef="let row"> {{row.fechaInicio | date:'dd/MM/yyyy'}} </td>
-                </ng-container>
-
-                <!-- Fecha Terminado Column -->
-                <ng-container matColumnDef="fechaTerminado">
-                    <th mat-header-cell *matHeaderCellDef> Fecha Terminado </th>
-                    <td mat-cell *matCellDef="let row"> {{row.fechaTerminado | date:'dd/MM/yyyy'}} </td>
-                </ng-container>
-
-                <!-- Solicitante Column -->
-                <ng-container matColumnDef="solicitante">
-                    <th mat-header-cell *matHeaderCellDef> Solicitante </th>
-                    <td mat-cell *matCellDef="let row"> {{row.nombreSolicitante}} </td>
-                </ng-container>
-
-                <!-- Header and Row Definitions -->
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-            </table>
-            
-            <!-- Paginador -->
-            <mat-paginator
-                [length]="totalItems"
-                [pageSize]="pageSize"
-                [pageSizeOptions]="[5, 10, 25, 100]"
-                [showFirstLastButtons]="true"
-                aria-label="Seleccionar página">
-            </mat-paginator>
-        </div>
-
-        <!-- Después de la tabla de servicios -->
+        <!-- Después de eliminar esa sección, el Historial de Notificaciones seguirá igual -->
         <div class="w-full bg-card shadow rounded-2xl overflow-hidden mt-6">
             <div class="flex items-center justify-between p-4">
                 <h3 class="text-xl font-bold">Historial de Notificaciones</h3>
