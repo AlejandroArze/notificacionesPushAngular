@@ -102,8 +102,8 @@ export interface FiltroNotificacion {
 export interface DestinatarioNotificacion {
     id: string;
     nombre: string;
-    rol: string;
-    unidad: string;
+    rol?: string;
+    unidad?: string;
 }
 
 export interface FiltroNotificacion {
@@ -111,8 +111,8 @@ export interface FiltroNotificacion {
     unidades?: string[];
     cargos?: string[];
     tipoContrato?: string[];
-    servicios?: string[]; // Add this line
-    estados?: string[]; // Add this line
-    tipos?: string[]; // Add this line
+    servicios?: string[];
+    estados?: string[];
+    tipos?: string[];
 }
 

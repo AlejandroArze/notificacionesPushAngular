@@ -28,6 +28,7 @@ import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import * as moment from 'moment';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ConfirmacionModalComponent } from '../notificacion-modal/notificacion-modal.component';
+import { MatListModule } from '@angular/material/list';
 
 // Registrar el locale español
 registerLocaleData(localeEs);
@@ -44,6 +45,13 @@ export const MY_DATE_FORMATS = {
         monthYearA11yLabel: 'MMMM YYYY',
     },
 };
+
+// Agregar una interfaz para usuarios
+interface UsuarioSeleccionable {
+    id: number;
+    nombre: string;
+    carnet: string;
+}
 
 @Component({
     selector: 'tasks-list',
@@ -72,7 +80,8 @@ export const MY_DATE_FORMATS = {
         MatFormFieldModule,
         MatInputModule,
         MatDialogModule,
-        ConfirmacionModalComponent
+        ConfirmacionModalComponent,
+        MatListModule
     ]
 })
 export class TasksListComponent implements OnInit {
@@ -190,6 +199,28 @@ export class TasksListComponent implements OnInit {
         '11:00 pm', '11:15 pm', '11:30 pm', '11:45 pm'
     ];
 
+    // Datos de ejemplo de usuarios
+    usuariosDisponibles: UsuarioSeleccionable[] = [
+        { id: 1, nombre: 'Juan Pérez', carnet: 'JP001' },
+        { id: 2, nombre: 'María González', carnet: 'MG002' },
+        { id: 3, nombre: 'Carlos Rodríguez', carnet: 'CR003' },
+        { id: 4, nombre: 'Ana Martínez', carnet: 'AM004' },
+        { id: 5, nombre: 'Luis Fernández', carnet: 'LF005' },
+        { id: 6, nombre: 'Elena Sánchez', carnet: 'ES006' },
+        { id: 7, nombre: 'Pedro Ramírez', carnet: 'PR007' },
+        { id: 8, nombre: 'Laura Torres', carnet: 'LT008' },
+        { id: 9, nombre: 'Miguel Hernández', carnet: 'MH009' },
+        { id: 10, nombre: 'Sofía Díaz', carnet: 'SD010' }
+    ];
+
+    // Usuarios filtrados para búsqueda
+    usuariosFiltradosPorNombre: UsuarioSeleccionable[] = [];
+    usuariosFiltradosPorCarnet: UsuarioSeleccionable[] = [];
+
+    // Propiedades para mantener los valores de búsqueda
+    usuarioBusquedaNombre: string = '';
+    usuarioBusquedaCarnet: string = '';
+
     constructor(
         private _tasksService: TasksService,
         private _snackBar: MatSnackBar,
@@ -305,7 +336,7 @@ export class TasksListComponent implements OnInit {
             fechaProgramada: fechaProgramada,
             tipoEnvio: 'grupo',
             destinatarios: this.destinatariosPreview.map(d => ({
-                usuarioId: d.id,
+                usuarioId: String(d.id),
                 estado: fechaProgramada ? 'programada' : 'enviada'
             }))
         };
@@ -517,5 +548,65 @@ export class TasksListComponent implements OnInit {
     // Método para seleccionar hora desde el desplegable
     seleccionarHora(hora: string) {
         this.notificacionForm.horaProgramada = hora;
+    }
+
+    // Método para filtrar usuarios por nombre
+    filtrarUsuariosPorNombre(termino: string) {
+        if (!termino) {
+            this.usuariosFiltradosPorNombre = [];
+            return;
+        }
+        
+        this.usuariosFiltradosPorNombre = this.usuariosDisponibles.filter(usuario => 
+            usuario.nombre.toLowerCase().includes(termino.toLowerCase())
+        );
+    }
+
+    // Método para filtrar usuarios por carnet
+    filtrarUsuariosPorCarnet(termino: string) {
+        if (!termino) {
+            this.usuariosFiltradosPorCarnet = [];
+            return;
+        }
+        
+        this.usuariosFiltradosPorCarnet = this.usuariosDisponibles.filter(usuario => 
+            usuario.carnet.toLowerCase().includes(termino.toLowerCase())
+        );
+    }
+
+    // Método para seleccionar usuario
+    seleccionarUsuario(usuario: UsuarioSeleccionable) {
+        this.destinatariosPreview = [{
+            id: String(usuario.id),
+            nombre: usuario.nombre,
+            rol: 'usuario',
+            unidad: 'General'
+        }];
+
+        // Actualizar campos de búsqueda
+        this.usuarioBusquedaNombre = usuario.nombre;
+        this.usuarioBusquedaCarnet = usuario.carnet;
+    }
+
+    // Método para manejar cambios en el campo de nombre
+    onNombreChange() {
+        // Filtrar usuarios por nombre
+        this.filtrarUsuariosPorNombre(this.usuarioBusquedaNombre);
+        
+        // Si hay solo un resultado, seleccionarlo automáticamente
+        if (this.usuariosFiltradosPorNombre.length === 1) {
+            this.seleccionarUsuario(this.usuariosFiltradosPorNombre[0]);
+        }
+    }
+
+    // Método para manejar cambios en el campo de carnet
+    onCarnetChange() {
+        // Filtrar usuarios por carnet
+        this.filtrarUsuariosPorCarnet(this.usuarioBusquedaCarnet);
+        
+        // Si hay solo un resultado, seleccionarlo automáticamente
+        if (this.usuariosFiltradosPorCarnet.length === 1) {
+            this.seleccionarUsuario(this.usuariosFiltradosPorCarnet[0]);
+        }
     }
 }

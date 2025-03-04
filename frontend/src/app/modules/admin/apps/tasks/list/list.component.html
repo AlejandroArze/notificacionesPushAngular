@@ -165,6 +165,71 @@
                                 </div>
                             </div>
 
+                            <!-- Sección de Envío Individual (mostrar solo si tipo de envío es 'individual') -->
+                            <div *ngIf="tipoEnvio === 'individual'" class="space-y-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <!-- Búsqueda por Nombre -->
+                                    <div>
+                                        <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            Buscar por Nombre
+                                        </label>
+                                        <mat-form-field appearance="outline" class="w-full">
+                                            <mat-label>Nombre del usuario</mat-label>
+                                            <input matInput 
+                                                   [(ngModel)]="usuarioBusquedaNombre"
+                                                   (input)="onNombreChange()"
+                                                   placeholder="Buscar por nombre">
+                                            <mat-icon matSuffix>search</mat-icon>
+                                        </mat-form-field>
+
+                                        <!-- Lista de usuarios filtrados por nombre -->
+                                        <mat-selection-list *ngIf="usuariosFiltradosPorNombre.length > 0">
+                                            <mat-list-option 
+                                                *ngFor="let usuario of usuariosFiltradosPorNombre" 
+                                                (click)="seleccionarUsuario(usuario)">
+                                                {{ usuario.nombre }} ({{ usuario.carnet }})
+                                            </mat-list-option>
+                                        </mat-selection-list>
+                                    </div>
+
+                                    <!-- Búsqueda por Carnet -->
+                                    <div>
+                                        <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            Buscar por Carnet
+                                        </label>
+                                        <mat-form-field appearance="outline" class="w-full">
+                                            <mat-label>Carnet del usuario</mat-label>
+                                            <input matInput 
+                                                   [(ngModel)]="usuarioBusquedaCarnet"
+                                                   (input)="onCarnetChange()"
+                                                   placeholder="Buscar por carnet">
+                                            <mat-icon matSuffix>search</mat-icon>
+                                        </mat-form-field>
+
+                                        <!-- Lista de usuarios filtrados por carnet -->
+                                        <mat-selection-list *ngIf="usuariosFiltradosPorCarnet.length > 0">
+                                            <mat-list-option 
+                                                *ngFor="let usuario of usuariosFiltradosPorCarnet" 
+                                                (click)="seleccionarUsuario(usuario)">
+                                                {{ usuario.nombre }} ({{ usuario.carnet }})
+                                            </mat-list-option>
+                                        </mat-selection-list>
+                                    </div>
+                                </div>
+
+                                <!-- Mostrar usuario seleccionado -->
+                                <div *ngIf="destinatariosPreview.length > 0" class="mt-4">
+                                    <label class="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        Usuario Seleccionado
+                                    </label>
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                                        <p class="text-sm">
+                                            {{ destinatariosPreview[0].nombre }} ({{ usuarioBusquedaCarnet }})
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Después de la sección de filtros y antes de los botones de acción -->
                             <div class="space-y-6">
                                 <!-- Selector de programación -->
