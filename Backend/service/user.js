@@ -278,13 +278,13 @@ class UserService {
                     currentPage: page,
                     totalPages: totalPages,
                     data: rows.map(user => ({
-                        usuarios_id: user.usuarios_id,
+                        usuarios_id: Number(user.usuarios_id),
                         email: user.email,
                         usuario: user.usuario,
                         nombres: user.nombres,
                         apellidos: user.apellidos,
                         role: user.role,
-                        estado: user.estado,
+                        estado: Number(user.estado),
                         image: user.image
                     }))
                 }
