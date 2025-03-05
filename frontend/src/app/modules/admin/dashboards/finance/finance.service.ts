@@ -183,56 +183,46 @@ export class FinanceService {
                 uuid: 'uuid-1',
                 titulo: 'Mantenimiento Programado',
                 mensaje: 'Se realizará mantenimiento en el sistema el próximo lunes',
-                imagen: '/assets/images/notifications/maintenance.jpg',
-                nombreNotificacion: 'Mantenimiento Sistema',
                 tipoEnvio: 'grupo',
+                estado: 'programada',
+                fechaCreacion: new Date('2024-02-15T10:00:00'),
+                responsableCreacion: 'Juan Pérez',
                 roles: ['admin', 'tecnico'],
                 unidades: ['Sistemas', 'Soporte'],
                 programarEnvio: true,
                 fechaProgramada: new Date('2024-02-15T10:00:00'),
                 horaProgramada: '10:00',
                 tipoProgramacion: 'unica',
-                estado: 'programada',
-                fechaCreacion: new Date('2024-02-15T10:00:00'),
-                responsableCreacion: 'Juan Pérez',
-                usuarioCreadorId: 123,
                 destinatarios: [
                     { usuarioId: '1', nombre: 'María González', estado: 'pendiente' },
                     { usuarioId: '2', nombre: 'Carlos Rodríguez', estado: 'pendiente' }
-                ],
-                servicioId: 501,
-                createdAt: new Date(),
-                updatedAt: new Date()
+                ]
             },
             {
                 id: 2,
                 uuid: 'uuid-2',
                 titulo: 'Actualización de Sistemas',
                 mensaje: 'Nueva versión del software disponible con mejoras de seguridad',
-                imagen: '/assets/images/notifications/update.jpg',
-                nombreNotificacion: 'Actualización Software',
                 tipoEnvio: 'todos',
-                programarEnvio: false,
                 estado: 'enviada',
                 fechaCreacion: new Date('2024-02-20T14:30:00'),
                 responsableCreacion: 'Ana Martínez',
-                usuarioCreadorId: 456,
+                tipos: ['software', 'seguridad'],
+                fechaEnvio: new Date('2024-02-20T14:30:00'),
                 destinatarios: [
                     { usuarioId: '3', nombre: 'Luis Fernández', estado: 'leída' },
                     { usuarioId: '4', nombre: 'Elena Sánchez', estado: 'enviada' }
-                ],
-                servicioId: 502,
-                createdAt: new Date(),
-                updatedAt: new Date()
+                ]
             },
             {
                 id: 3,
                 uuid: 'uuid-3',
                 titulo: 'Capacitación de Seguridad',
                 mensaje: 'Próximo taller de seguridad informática para todo el personal de TI',
-                imagen: '/assets/images/notifications/training.jpg',
-                nombreNotificacion: 'Taller Seguridad Informática',
                 tipoEnvio: 'grupo',
+                estado: 'programada',
+                fechaCreacion: new Date('2024-03-10T09:45:00'),
+                responsableCreacion: 'Pedro Ramírez',
                 roles: ['tecnico'],
                 unidades: ['Sistemas'],
                 programarEnvio: true,
@@ -243,20 +233,10 @@ export class FinanceService {
                 diasSeleccionados: { 
                     lunes: true, 
                     miercoles: true 
-                },
-                estado: 'programada',
-                fechaCreacion: new Date('2024-03-10T09:45:00'),
-                responsableCreacion: 'Pedro Ramírez',
-                usuarioCreadorId: 789,
-                destinatarios: [
-                    { usuarioId: '5', nombre: 'Laura Torres', estado: 'pendiente' },
-                    { usuarioId: '6', nombre: 'Roberto Mendoza', estado: 'pendiente' }
-                ],
-                servicioId: 503,
-                createdAt: new Date(),
-                updatedAt: new Date()
+                }
             }
         ];
+
         return of(notificacionesEjemplo);
     }
 

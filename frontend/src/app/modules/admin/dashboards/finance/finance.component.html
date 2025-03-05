@@ -346,46 +346,104 @@
                                     [class.expanded]="selectedNotificacion === notificacion"
                                     [@detailExpand]="selectedNotificacion === notificacion ? 'expanded' : 'collapsed'">
                                     <div class="p-6 bg-gray-50 dark:bg-gray-700">
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <!-- Columna Izquierda -->
-                                            <div>
-                                                <h4 class="text-lg font-semibold mb-4">Detalles de la Notificación</h4>
-                                                <div class="space-y-2">
-                                                    <div class="flex">
-                                                        <span class="font-medium mr-2 w-1/3">Título:</span>
-                                                        <span>{{ notificacion.titulo }}</span>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <!-- Columna Izquierda: Detalles Principales -->
+                                            <div class="space-y-4">
+                                                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                                                    <h4 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200 border-b pb-2">
+                                                        <mat-icon class="mr-2 text-blue-500">info</mat-icon>Información Principal
+                                                    </h4>
+                                                    <div class="grid grid-cols-2 gap-2">
+                                                        <div class="text-sm">
+                                                            <span class="font-medium text-gray-600 dark:text-gray-300">Título:</span>
+                                                            <p class="text-gray-900 dark:text-white">{{ notificacion.titulo }}</p>
+                                                        </div>
+                                                        <div class="text-sm">
+                                                            <span class="font-medium text-gray-600 dark:text-gray-300">Estado:</span>
+                                                            <span 
+                                                                class="px-2 py-1 rounded-full text-xs font-semibold"
+                                                                [ngClass]="{
+                                                                    'bg-blue-100 text-blue-800': notificacion.estado === 'programada',
+                                                                    'bg-green-100 text-green-800': notificacion.estado === 'enviada',
+                                                                    'bg-yellow-100 text-yellow-800': notificacion.estado === 'pendiente',
+                                                                    'bg-red-100 text-red-800': notificacion.estado === 'cancelada'
+                                                                }">
+                                                                {{ notificacion.estado | titlecase }}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div class="flex">
-                                                        <span class="font-medium mr-2 w-1/3">Estado:</span>
-                                                        <span>{{ notificacion.estado }}</span>
-                                                    </div>
-                                                    <div class="flex">
-                                                        <span class="font-medium mr-2 w-1/3">Tipo de Envío:</span>
-                                                        <span>{{ notificacion.tipoEnvio }}</span>
+                                                </div>
+
+                                                <!-- Información de Envío -->
+                                                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                                                    <h4 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200 border-b pb-2">
+                                                        <mat-icon class="mr-2 text-green-500">send</mat-icon>Detalles de Envío
+                                                    </h4>
+                                                    <div class="grid grid-cols-2 gap-2">
+                                                        <div class="text-sm">
+                                                            <span class="font-medium text-gray-600 dark:text-gray-300">Tipo de Envío:</span>
+                                                            <p class="text-gray-900 dark:text-white">{{ notificacion.tipoEnvio | titlecase }}</p>
+                                                        </div>
+                                                        <div class="text-sm" *ngIf="notificacion.programarEnvio">
+                                                            <span class="font-medium text-gray-600 dark:text-gray-300">Fecha Programada:</span>
+                                                            <p class="text-gray-900 dark:text-white">
+                                                                {{ notificacion.fechaProgramada | date:'dd/MM/yyyy HH:mm' }}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <!-- Columna Derecha -->
-                                            <div>
-                                                <h4 class="text-lg font-semibold mb-4">Información Adicional</h4>
-                                                <div class="space-y-2">
-                                                    <div class="flex">
-                                                        <span class="font-medium mr-2 w-1/3">Fecha de Creación:</span>
-                                                        <span>{{ notificacion.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
-                                                    </div>
-                                                    <div class="flex">
-                                                        <span class="font-medium mr-2 w-1/3">Responsable:</span>
-                                                        <span>{{ notificacion.responsableCreacion }}</span>
+                                            <!-- Columna Derecha: Información Adicional -->
+                                            <div class="space-y-4">
+                                                <!-- Destinatarios -->
+                                                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                                                    <h4 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200 border-b pb-2">
+                                                        <mat-icon class="mr-2 text-purple-500">people</mat-icon>Destinatarios
+                                                    </h4>
+                                                    <div class="space-y-2">
+                                                        <div 
+                                                            *ngFor="let destinatario of notificacion.destinatarios" 
+                                                            class="flex items-center justify-between text-sm">
+                                                            <div class="flex items-center">
+                                                                <mat-icon 
+                                                                    class="mr-2"
+                                                                    [ngClass]="{
+                                                                        'text-green-500': destinatario.estado === 'leída',
+                                                                        'text-yellow-500': destinatario.estado === 'pendiente',
+                                                                        'text-blue-500': destinatario.estado === 'enviada'
+                                                                    }">
+                                                                    {{ 
+                                                                        destinatario.estado === 'leída' ? 'check_circle' : 
+                                                                        destinatario.estado === 'pendiente' ? 'access_time' : 
+                                                                        destinatario.estado === 'enviada' ? 'send' : 'help_outline'
+                                                                    }}
+                                                                </mat-icon>
+                                                                <span class="text-gray-900 dark:text-white">{{ destinatario.nombre }}</span>
+                                                            </div>
+                                                            <span 
+                                                                class="px-2 py-1 rounded-full text-xs font-semibold"
+                                                                [ngClass]="{
+                                                                    'bg-green-100 text-green-800': destinatario.estado === 'leída',
+                                                                    'bg-yellow-100 text-yellow-800': destinatario.estado === 'pendiente',
+                                                                    'bg-blue-100 text-blue-800': destinatario.estado === 'enviada'
+                                                                }">
+                                                                {{ destinatario.estado | titlecase }}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
 
-                                        <!-- Mensaje Completo -->
-                                        <div class="mt-4 bg-white dark:bg-gray-800 p-4 rounded">
-                                            <h4 class="text-lg font-semibold mb-2">Mensaje Completo</h4>
-                                            <p>{{ notificacion.mensaje }}</p>
+                                                <!-- Mensaje Completo -->
+                                                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                                                    <h4 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200 border-b pb-2">
+                                                        <mat-icon class="mr-2 text-indigo-500">message</mat-icon>Mensaje Completo
+                                                    </h4>
+                                                    <p class="text-gray-900 dark:text-white text-sm">
+                                                        {{ notificacion.mensaje }}
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
