@@ -76,7 +76,7 @@
 
             <!-- Tipo de servicio y Técnico con botones de acción -->
             <div class="flex flex-col">
-                <label class="text-sm mb-2">Tipo de servicio</label>
+                <label class="text-sm mb-2">Tipo de Envio</label>
                 <mat-form-field class="w-full">
                     <mat-select [(ngModel)]="tipoServicio">
                         <mat-option value="TODOS">TODOS</mat-option>
@@ -88,7 +88,7 @@
             </div>
 
             <div class="flex flex-col">
-                <label class="text-sm mb-2">Técnico</label>
+                <label class="text-sm mb-2">Usuario Admin</label>
                 <mat-form-field class="w-full">
                     <mat-select [(ngModel)]="tecnico">
                         
@@ -115,158 +115,42 @@
             </button>
         </div>
 
-        <!-- Métricas -->
-        <div class="w-full grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <!-- Métricas en dos tarjetas -->
+        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <!-- Resumen -->
             <div class="flex flex-col bg-card shadow rounded-lg p-6">
                 <div class="flex items-center justify-between">
-                    <div class="text-lg font-medium">Resumen</div>
+                    <div class="text-lg font-medium">Resumen de Notificaciones</div>
                     <mat-icon class="text-hint">more_vert</mat-icon>
                 </div>
                 <div class="flex flex-col mt-4">
                     <div class="text-7xl font-bold text-blue-500">{{metrics?.resumen.total_servicios || 0}}</div>
-                    <div class="text-lg text-secondary">Total Servicios</div>
+                    <div class="text-lg text-secondary">Total Notificaciones</div>
                     <div class="mt-4 text-secondary">
                         Completados: {{metrics?.resumen.servicios_terminados || 0}}
                     </div>
                 </div>
             </div>
 
-            <!-- Distribución de Tipos -->
+            <!-- Distribución de Servicios -->
             <div class="flex flex-col bg-card shadow rounded-lg p-6">
                 <div class="flex items-center justify-between">
-                    <div class="text-lg font-medium">Distribución de Servicios</div>
+                    <div class="text-lg font-medium">Distribución de Notificaciones</div>
                     <mat-icon class="text-hint">more_vert</mat-icon>
                 </div>
                 <div class="flex-auto">
                     <canvas #distribucionChart></canvas>
                 </div>
             </div>
-
-            <!-- Rendimiento Técnicos -->
-            <div class="flex flex-col bg-card shadow rounded-lg p-6 relative">
-                <div class="flex items-center justify-between">
-                    <div class="text-lg font-medium">Rendimiento Técnicos</div>
-                    <mat-icon class="text-hint">more_vert</mat-icon>
-                </div>
-                <!-- Ranking de Técnicos -->
-                <div class="flex-auto overflow-y-auto max-h-[400px] mt-4">
-                    <div class="grid gap-2">
-                        <div *ngFor="let tecnico of rendimientoTecnicos; let i = index" 
-                             class="flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 relative"
-                             (mouseenter)="showTooltip($event, i)"
-                             (mouseleave)="hideTooltip()">
-                            <!-- Medalla o Posición -->
-                            <div class="flex-none w-8 text-xl font-bold">
-                                <span *ngIf="i === 0">🥇</span>
-                                <span *ngIf="i === 1">🥈</span>
-                                <span *ngIf="i === 2">🥉</span>
-                                <span *ngIf="i > 2">{{i + 1}}</span>
-                            </div>
-                            <!-- Foto de perfil -->
-                            <div class="flex-none w-10 h-10 rounded-full overflow-hidden mr-3">
-                                <img
-                                    class="w-full h-full object-cover"
-                                    [src]="getImageUrl(tecnico.tecnico_id)"
-                                    [alt]="tecnico.tecnico"
-                                    (error)="$event.target.parentElement.innerHTML = '<div class=\'flex items-center justify-center w-full h-full rounded-full text-lg uppercase bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200\'>' + tecnico.tecnico.charAt(0) + '</div>'"/>
-                            </div>
-                            <!-- Información del técnico -->
-                            <div class="flex-grow">
-                                <div class="font-medium">{{tecnico.tecnico}}</div>
-                            </div>
-                            <!-- Puntuación -->
-                            <div class="flex-none text-right">
-                                <div class="font-medium text-blue-600 dark:text-blue-400">
-                                    {{tecnico.completados}} servicios
-                                </div>
-                            </div>
-                            
-                            <!-- Tooltip detallado -->
-                            <div *ngIf="selectedTecnicoIndex === i"
-                                 class="fixed bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl z-[9999] w-72 transform -translate-x-1/2 left-1/2"
-                                 style="top: 50%; transform: translate(-50%, -50%);">
-                                <div class="text-sm">
-                                    <div class="font-medium mb-2 text-center">{{tecnico.tecnico}}</div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div class="text-secondary">Total servicios:</div>
-                                        <div class="text-right font-bold">{{tecnico.total_servicios}}</div>
-                                        <div class="text-secondary">Completados:</div>
-                                        <div class="text-right font-bold">{{tecnico.completados}}</div>
-                                        <div class="text-secondary">Tiempo promedio:</div>
-                                        <div class="text-right font-bold">{{formatTiempoResolucionSimple(tecnico)}}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tiempos de Resolución -->
-            <div class="flex flex-col bg-card shadow rounded-lg p-6">
-                <div class="flex items-center justify-between">
-                    <div class="text-lg font-medium">Tiempos de Resolución</div>
-                    <mat-icon class="text-hint">more_vert</mat-icon>
-                </div>
-                <div class="grid grid-cols-1 gap-4 mt-4">
-                    <!-- EN LABORATORIO - Principal y centrado -->
-                    <div class="flex flex-col bg-[#f0fdf4] dark:bg-[#293445] shadow rounded-lg p-4">
-                        <div class="flex flex-col text-center">
-                            <div class="text-5xl font-bold text-green-500">
-                                {{formatTiempoResolucion(getMetricByTipo('EN LABORATORIO')).valor}}
-                            </div>
-                            <div class="text-2xl text-green-500">
-                                {{formatTiempoResolucion(getMetricByTipo('EN LABORATORIO')).unidad}}
-                            </div>
-                        </div>
-                        <div class="text-lg text-secondary mt-2 text-center">EN LABORATORIO</div>
-                        <div class="mt-2 text-secondary text-center">
-                            Total: {{getMetricByTipo('EN LABORATORIO')?.total_servicios || 0}}
-                        </div>
-                    </div>
-                    <!-- REMOTA y otros - Más pequeños abajo -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="flex flex-col bg-[#fffbeb] dark:bg-[#293445] shadow rounded-lg p-4">
-                            <div class="flex flex-col text-center">
-                                <div class="text-4xl font-bold text-amber-500">
-                                    {{formatTiempoResolucion(getMetricByTipo('REMOTA')).valor}}
-                                </div>
-                                <div class="text-xl text-amber-500">
-                                    {{formatTiempoResolucion(getMetricByTipo('REMOTA')).unidad}}
-                                </div>
-                            </div>
-                            <div class="text-lg text-secondary mt-2 text-center">REMOTA</div>
-                            <div class="mt-2 text-secondary text-center">
-                                Total: {{getMetricByTipo('REMOTA')?.total_servicios || 0}}
-                            </div>
-                        </div>
-                        <div class="flex flex-col bg-[#fef2f2] dark:bg-[#293445] shadow rounded-lg p-4">
-                            <div class="flex flex-col text-center">
-                                <div class="text-4xl font-bold text-red-500">
-                                    {{formatTiempoResolucion(getMetricByTipo('ASISTENCIA')).valor}}
-                                </div>
-                                <div class="text-xl text-red-500">
-                                    {{formatTiempoResolucion(getMetricByTipo('ASISTENCIA')).unidad}}
-                                </div>
-                            </div>
-                            <div class="text-lg text-secondary mt-2 text-center">ASISTENCIA</div>
-                            <div class="mt-2 text-secondary text-center">
-                                Total: {{getMetricByTipo('ASISTENCIA')?.total_servicios || 0}}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
-        <!-- Después de eliminar esa sección, el Historial de Notificaciones seguirá igual -->
+        <!-- Historial de Notificaciones -->
         <div class="w-full bg-card shadow rounded-2xl overflow-hidden mt-6">
             <div class="flex items-center justify-between p-4">
                 <h3 class="text-xl font-bold">Historial de Notificaciones</h3>
             </div>
 
-            <!-- Notificaciones Table -->
+            <!-- Tabla de Notificaciones -->
             <div class="container mx-auto p-4">
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
                     <table mat-table 
@@ -274,69 +158,69 @@
                            multiTemplateDataRows 
                            class="w-full">
                         
-                        <!-- Columna de Título -->
-                        <ng-container matColumnDef="titulo">
-                            <th mat-header-cell *matHeaderCellDef>Título</th>
-                            <td mat-cell *matCellDef="let notificacion">
-                                {{ notificacion.titulo }}
-                            </td>
-                        </ng-container>
+                <!-- Columna de Título -->
+                <ng-container matColumnDef="titulo">
+                    <th mat-header-cell *matHeaderCellDef>Título</th>
+                    <td mat-cell *matCellDef="let notificacion">
+                        {{ notificacion.titulo }}
+                    </td>
+                </ng-container>
 
-                        <!-- Columna de Estado -->
-                        <ng-container matColumnDef="estado">
-                            <th mat-header-cell *matHeaderCellDef>Estado</th>
-                            <td mat-cell *matCellDef="let notificacion">
-                                <span 
-                                    class="px-2 py-1 rounded-full text-xs font-semibold"
-                                    [ngClass]="{
+                <!-- Columna de Estado -->
+                <ng-container matColumnDef="estado">
+                    <th mat-header-cell *matHeaderCellDef>Estado</th>
+                    <td mat-cell *matCellDef="let notificacion">
+                        <span 
+                            class="px-2 py-1 rounded-full text-xs font-semibold"
+                            [ngClass]="{
                                         'bg-blue-100 text-blue-800': notificacion.estado === 'programada',
                                         'bg-green-100 text-green-800': notificacion.estado === 'enviada',
-                                        'bg-yellow-100 text-yellow-800': notificacion.estado === 'pendiente',
+                                'bg-yellow-100 text-yellow-800': notificacion.estado === 'pendiente',
                                         'bg-red-100 text-red-800': notificacion.estado === 'cancelada'
-                                    }">
-                                    {{ notificacion.estado | titlecase }}
-                                </span>
-                            </td>
-                        </ng-container>
+                            }">
+                            {{ notificacion.estado | titlecase }}
+                        </span>
+                    </td>
+                </ng-container>
 
-                        <!-- Columna de Tipo de Envío -->
-                        <ng-container matColumnDef="tipoEnvio">
-                            <th mat-header-cell *matHeaderCellDef>Tipo de Envío</th>
-                            <td mat-cell *matCellDef="let notificacion">
-                                {{ notificacion.tipoEnvio | titlecase }}
-                            </td>
-                        </ng-container>
+                <!-- Columna de Tipo de Envío -->
+                <ng-container matColumnDef="tipoEnvio">
+                    <th mat-header-cell *matHeaderCellDef>Tipo de Envío</th>
+                    <td mat-cell *matCellDef="let notificacion">
+                        {{ notificacion.tipoEnvio | titlecase }}
+                    </td>
+                </ng-container>
 
-                        <!-- Columna de Fecha de Creación -->
-                        <ng-container matColumnDef="fechaCreacion">
-                            <th mat-header-cell *matHeaderCellDef>Fecha de Creación</th>
-                            <td mat-cell *matCellDef="let notificacion">
+                <!-- Columna de Fecha de Creación -->
+                <ng-container matColumnDef="fechaCreacion">
+                    <th mat-header-cell *matHeaderCellDef>Fecha de Creación</th>
+                    <td mat-cell *matCellDef="let notificacion">
                                 {{ notificacion.fechaCreacion | date:'dd/MM/yyyy' }}<br>
                                 {{ notificacion.fechaCreacion | date:'HH:mm' }}
-                            </td>
-                        </ng-container>
+                    </td>
+                </ng-container>
 
-                        <!-- Columna de Responsable -->
-                        <ng-container matColumnDef="responsable">
-                            <th mat-header-cell *matHeaderCellDef>Responsable</th>
-                            <td mat-cell *matCellDef="let notificacion">
-                                {{ notificacion.responsableCreacion }}
-                            </td>
-                        </ng-container>
+                <!-- Columna de Responsable -->
+                <ng-container matColumnDef="responsable">
+                    <th mat-header-cell *matHeaderCellDef>Responsable</th>
+                    <td mat-cell *matCellDef="let notificacion">
+                        {{ notificacion.responsableCreacion }}
+                    </td>
+                </ng-container>
 
-                        <!-- Columna de Detalles -->
-                        <ng-container matColumnDef="detalles">
-                            <th mat-header-cell *matHeaderCellDef>Detalles</th>
-                            <td mat-cell *matCellDef="let notificacion">
-                                <button 
-                                    mat-icon-button 
+                <!-- Columna de Detalles -->
+                <ng-container matColumnDef="detalles">
+                    <th mat-header-cell *matHeaderCellDef>Detalles</th>
+                    <td mat-cell *matCellDef="let notificacion">
+                        <button 
+                            mat-icon-button 
                                     (click)="toggleDetails(notificacion)">
                                     <mat-icon>
                                         {{ selectedNotificacion === notificacion ? 'expand_less' : 'expand_more' }}
                                     </mat-icon>
-                                </button>
-                            </td>
-                        </ng-container>
+                        </button>
+                    </td>
+                </ng-container>
 
                         <!-- Fila expandible -->
                         <ng-container matColumnDef="expandedDetail">
@@ -458,17 +342,17 @@
                             class="detail-row"
                             [class.expanded]="selectedNotificacion === row">
                         </tr>
-                    </table>
+            </table>
 
-                    <!-- Paginador -->
-                    <mat-paginator 
-                        #notificacionesPaginator
-                        [length]="totalNotificaciones"
-                        [pageSize]="notificationPageSize"
-                        [pageSizeOptions]="[5, 10, 25, 100]"
+            <!-- Paginador -->
+            <mat-paginator 
+                #notificacionesPaginator
+                [length]="totalNotificaciones"
+                [pageSize]="notificationPageSize"
+                [pageSizeOptions]="[5, 10, 25, 100]"
                         (page)="onPageChange($event)"
-                        showFirstLastButtons>
-                    </mat-paginator>
+                showFirstLastButtons>
+            </mat-paginator>
                 </div>
             </div>
 
