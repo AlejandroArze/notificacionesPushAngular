@@ -9,7 +9,8 @@ import {
 import { 
     MatDialogRef, 
     MAT_DIALOG_DATA, 
-    MatDialogModule 
+    MatDialogModule,
+    MatDialog 
 } from '@angular/material/dialog';
 import { 
     MatFormFieldModule 
@@ -20,6 +21,7 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { TasksService } from '../tasks.service';
 import { 
@@ -68,7 +70,9 @@ export class ConfirmacionModalComponent {
 
     constructor(
         public dialogRef: MatDialogRef<ConfirmacionModalComponent>,
-        @Inject(MAT_DIALOG_DATA) public data: any
+        @Inject(MAT_DIALOG_DATA) public data: any,
+        private _tasksService: TasksService,
+        private _snackBar: MatSnackBar
     ) {}
 
     cancelar(): void {
@@ -76,7 +80,41 @@ export class ConfirmacionModalComponent {
     }
 
     confirmar(): void {
-        this.dialogRef.close(this.contrasena);
+        console.log('Datos recibidos para envío:', this.data);
+
+        // Preparar notificación para enviar
+        const notificacionPush = {
+            userId: 1, // Por defecto al usuario 1
+            title: this.data.titulo || 'Notificación',
+            body: this.data.mensaje || 'Sin mensaje',
+            data: {
+                tipo: 'mensaje',
+                accion: 'abrir_notificacion',
+                imagen: this.data.imagen,
+                fechaCreacion: new Date().toISOString()
+            },
+            type: 'message'
+        };
+
+        console.log('Notificación a enviar:', notificacionPush);
+
+        // Enviar notificación push
+        this._tasksService.enviarNotificacionPush(notificacionPush)
+            .subscribe({
+                next: (respuesta) => {
+                    console.log('Respuesta de envío de notificación:', respuesta);
+                    this._snackBar.open('Notificación enviada exitosamente', 'Cerrar', { duration: 3000 });
+                    
+                    // Cerrar el modal con éxito
+                    this.dialogRef.close(true);
+                },
+                error: (error) => {
+                    console.error('Error completo al enviar notificación:', error);
+                    console.error('Mensaje de error:', error.message);
+                    console.error('Detalles del error:', error.error);
+                    this._snackBar.open('Error al enviar notificación', 'Cerrar', { duration: 3000 });
+                }
+            });
     }
 }
 
@@ -100,6 +138,8 @@ export class NotificacionModalComponent implements OnInit {
     notificacionForm: FormGroup;
     destinatariosPreview: DestinatarioNotificacion[] = [];
     vistaPrevia: 'inicial' | 'expandida' = 'inicial';
+    destinatariosSeleccionados: DestinatarioNotificacion[] = [];
+    formData: any;
 
     rolesDisponibles = [
         { value: 'admin', label: 'Administrador' },
@@ -118,7 +158,9 @@ export class NotificacionModalComponent implements OnInit {
         private _fb: FormBuilder,
         public dialogRef: MatDialogRef<NotificacionModalComponent>,
         private _tasksService: TasksService,
-        @Inject(MAT_DIALOG_DATA) public data: any
+        private _dialog: MatDialog,
+        @Inject(MAT_DIALOG_DATA) public data: any,
+        private _snackBar: MatSnackBar
     ) {}
 
     ngOnInit() {
@@ -130,6 +172,7 @@ export class NotificacionModalComponent implements OnInit {
             roles: [[]],
             unidades: [[]]
         });
+        this.formData = this.data;
     }
 
     cambiarVistaPrevia(vista: 'inicial' | 'expandida') {
@@ -142,43 +185,100 @@ export class NotificacionModalComponent implements OnInit {
     }
 
     previsualizarDestinatarios() {
-        const filtros: FiltroNotificacion = {
-            roles: this.notificacionForm.get('roles').value,
-            unidades: this.notificacionForm.get('unidades').value
+        // Abrir modal de confirmación con los datos de la notificación
+        const dialogRef = this._dialog.open(ConfirmacionModalComponent, {
+            width: '400px',
+            data: {
+                titulo: this.notificacionForm.get('titulo').value,
+                mensaje: this.notificacionForm.get('mensaje').value,
+                imagen: this.notificacionForm.get('imagen').value
+            }
+        });
+
+        dialogRef.afterClosed().subscribe(resultado => {
+            if (resultado) {
+                console.log('Notificación enviada exitosamente');
+                // Puedes agregar acciones adicionales después del envío
+            }
+        });
+    }
+
+    enviarNotificacion() {
+        // Validar que haya un destinatario seleccionado
+        if (this.destinatariosSeleccionados.length === 0) {
+            this._snackBar.open('Selecciona al menos un destinatario', 'Cerrar', { duration: 3000 });
+            return;
+        }
+
+        // Obtener el ID de usuario real, no el token de dispositivo
+        const destinatario = this.destinatariosSeleccionados[0];
+        const usuarioId = destinatario.usuarioId ?? destinatario.id; // Usar encadenamiento opcional
+        const deviceToken = destinatario.deviceToken ?? ''; // Valor predeterminado vacío si no existe
+
+        const notificacionPush = {
+            userId: usuarioId, // Usar el ID de usuario real
+            title: this.formData.titulo || 'Notificación',
+            body: this.formData.mensaje || 'Sin mensaje',
+            deviceToken: deviceToken, // Agregar el token de dispositivo si está disponible
+            data: {
+                tipo: 'mensaje',
+                accion: 'abrir_notificacion',
+                imagen: this.formData.imagen,
+                fechaCreacion: new Date().toISOString()
+            },
+            type: 'message'
         };
 
-        this._tasksService.obtenerDestinatarios(filtros)
-            .subscribe(destinatarios => {
-                this.destinatariosPreview = destinatarios;
+        // Enviar notificación push
+        this._tasksService.enviarNotificacionPush(notificacionPush)
+            .subscribe({
+                next: (respuesta) => {
+                    console.log('Notificación enviada:', respuesta);
+                    this._snackBar.open('Notificación enviada exitosamente', 'Cerrar', { duration: 3000 });
+                    
+                    // Guardar en historial de notificaciones
+                    this.guardarHistorialNotificacion(respuesta);
+                    
+                    // Cerrar el modal
+                    this.dialogRef.close(true);
+                },
+                error: (error) => {
+                    console.error('Error completo al enviar notificación:', error);
+                    
+                    // Mensaje de error más descriptivo
+                    let errorMsg = 'Error desconocido al enviar notificación';
+                    
+                    if (error.status === 401) {
+                        errorMsg = 'No autorizado. Por favor, inicie sesión nuevamente.';
+                    } else if (error.error && error.error.message) {
+                        errorMsg = error.error.message;
+                    }
+                    
+                    this._snackBar.open(errorMsg, 'Cerrar', { duration: 5000 });
+                }
             });
     }
 
-    enviar() {
-        if (this.notificacionForm.valid) {
-            const formData = this.notificacionForm.value;
-            const notificacion: NotificacionPush = {
-                titulo: formData.titulo,
-                mensaje: formData.mensaje,
-                imagen: formData.imagen,
-                fechaCreacion: new Date(),
-                tipoEnvio: 'grupo',
-                destinatarios: this.destinatariosPreview.map(d => ({
-                    usuarioId: d.id,
-                    estado: 'enviada'
-                })),
-                servicioId: this.data?.servicioId
-            };
+    // Método para guardar historial de notificación
+    guardarHistorialNotificacion(notificacion: any) {
+        const historialNotificacion: NotificacionPush = {
+            id: notificacion.id,
+            usuarioId: notificacion.user_id,
+            titulo: notificacion.title,
+            mensaje: notificacion.body,
+            fechaCreacion: new Date(notificacion.created_at),
+            fechaEnvio: new Date(notificacion.sent_at),
+            estado: notificacion.status,
+            tipo: notificacion.type,
+            datos: notificacion.data
+        };
 
-            this._tasksService.enviarNotificacionPush(notificacion)
-                .subscribe({
-                    next: (respuesta) => {
-                        this.dialogRef.close(respuesta);
-                    },
-                    error: (error) => {
-                        console.error('Error al enviar notificación', error);
-                    }
-                });
-        }
+        // Guardar en el servicio o enviar a backend
+        this._tasksService.guardarHistorialNotificacion(historialNotificacion)
+            .subscribe({
+                next: () => console.log('Historial de notificación guardado'),
+                error: (error) => console.error('Error al guardar historial', error)
+            });
     }
 
     cancelar() {

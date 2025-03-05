@@ -4,6 +4,10 @@ import { Tag, Task, Servicio, InventoryPagination, InventoryEquipment, Notificac
 import { BehaviorSubject, filter, map, Observable, of, switchMap, take, tap, throwError, catchError, delay } from 'rxjs';
 import { environment } from 'environments/environment'; 
 import { forkJoin } from 'rxjs';
+import { ErrorLogService } from 'app/core/services/error-log.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 const now = new Date();
 //const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
@@ -54,7 +58,12 @@ export class TasksService
     /**
      * Constructor
      */
-    constructor(private _httpClient: HttpClient)
+    constructor(
+        private _httpClient: HttpClient,
+        private _errorLogService: ErrorLogService,
+        private _snackBar: MatSnackBar,
+        private _router: Router
+    )
     {
     }
 
@@ -992,20 +1001,138 @@ export class TasksService
         this._pagination.next(pagination);
     }
 
-    /**
-     * Enviar notificación push
-     * @param notificacion Detalles de la notificación
-     * @param filtros Filtros para destinatarios
-     */
-    enviarNotificacionPush(notificacion: NotificacionPush) {
-        // Agregar el ID del usuario que envía la notificación
-        notificacion.usuarioCreadorId = this.obtenerIdUsuarioActual();
+    // Método para enviar notificación push usando la API específica
+    enviarNotificacionPush(notificacion: {
+        userId: number;
+        title: string;
+        body: string;
+        data?: {
+            tipo: string;
+            accion: string;
+        };
+        type?: string;
+    }): Observable<any> {
+        const endpoint = `http://localhost:3000/api/notifications/send`;
+        
+        // Token específico proporcionado
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMiLCJpYXQiOjE3NDExNTgxMTMsImV4cCI6MTc0MTI0NDUxM30.Re_ru_psaaifzA8_1VREhrBQJmbhMLQCvDj4v1yVpgI';
 
-        const endpoint = notificacion.fechaProgramada 
-            ? '/api/notificaciones/programar'
-            : '/api/notificaciones/enviar';
+        const headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        });
 
-        return this._httpClient.post(endpoint, notificacion);
+        // Preparar payload exactamente como en Postman
+        const payload = {
+            userId: 3,  // Sin conversión de tipo
+            title: notificacion.title,
+            body: notificacion.body,
+            data: {
+                tipo: 'mensaje',
+                accion: 'abrir_chat'
+            },
+            type: 'message'
+        };
+
+        // Log detallado de toda la solicitud
+        console.group('�� Detalles Completos de Solicitud de Notificación');
+        console.log('📍 Endpoint:', endpoint);
+        console.log('🔑 Token completo:', token);
+        console.log('📦 Payload completo:', JSON.stringify(payload, null, 2));
+        console.log('🌐 Cabeceras:', Object.fromEntries(headers.keys().map(key => [key, headers.get(key)])));
+        console.groupEnd();
+
+        // Registro de log para depuración
+        this.registrarLogDetalladoSolicitud(endpoint, payload, token);
+
+        return this._httpClient.post(endpoint, payload, { 
+            headers,
+            observe: 'response',
+            responseType: 'json',
+            withCredentials: false
+        }).pipe(
+            map(response => {
+                console.group('✅ Respuesta de Notificación');
+                console.log('📊 Código de estado:', response.status);
+                console.log('📨 Respuesta completa:', response.body);
+                console.groupEnd();
+                return response.body;
+            }),
+            catchError(error => {
+                console.group('❌ Error de Notificación');
+                console.log('🔍 Tipo de error:', error.constructor.name);
+                console.log('🚨 Código de estado:', error.status);
+                console.log('📝 Mensaje de error:', error.message);
+                console.log('📋 Cuerpo del error:', error.error);
+                console.log('🌐 Detalles completos:', JSON.stringify(error, null, 2));
+                console.groupEnd();
+
+                // Registrar error en archivo de log
+                this.registrarErrorLog(error, 'Envío de Notificación Push');
+                
+                // Descargar logs de error
+                this.descargarLogsComoArchivo();
+
+                return throwError(() => error);
+            })
+        );
+    }
+
+    // Método para registrar log detallado de la solicitud
+    private registrarLogDetalladoSolicitud(endpoint: string, payload: any, token: string) {
+        try {
+            const logSolicitud = {
+                timestamp: new Date().toISOString(),
+                endpoint,
+                payload,
+                tokenParcial: token.substring(0, 20) + '...' // Mostrar solo parte del token
+            };
+
+            // Guardar en localStorage
+            const logs = JSON.parse(localStorage.getItem('solicitud_logs') || '[]');
+            logs.push(logSolicitud);
+            localStorage.setItem('solicitud_logs', JSON.stringify(logs));
+
+            console.log('🗒️ Log de solicitud guardado:', logSolicitud);
+        } catch (error) {
+            console.error('Error al guardar log de solicitud:', error);
+        }
+    }
+
+    // Método para obtener un nuevo token
+    obtenerNuevoToken(): Observable<string> {
+        // Usar el endpoint de refresh token
+        return this._httpClient.post<{token: string}>(`${this.baseUrl}/auth/refresh-token`, {}).pipe(
+            map(response => {
+                if (response && response.token) {
+                    console.log('Nuevo token obtenido');
+                    return response.token;
+                }
+                throw new Error('No se pudo obtener un nuevo token');
+            }),
+            catchError(error => {
+                console.error('Error al obtener nuevo token', error);
+                // Si falla, podrías redirigir al login o mostrar un mensaje
+                this._snackBar.open('Su sesión ha expirado. Por favor, inicie sesión nuevamente.', 'Cerrar', {
+                    duration: 5000
+                });
+                
+                // Opcional: Cerrar sesión si no se puede obtener un nuevo token
+                this.logout();
+                
+                return throwError(() => error);
+            })
+        );
+    }
+
+    // Método de logout (asegúrate de importar los servicios necesarios)
+    private logout() {
+        // Limpiar datos de sesión
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
+        // Redirigir a página de login
+        this._router.navigate(['/login']);
     }
 
     // Método para obtener el ID del usuario actual
@@ -1070,8 +1197,16 @@ export class TasksService
         return this._httpClient.post('/api/notificaciones/imagen', formData);
     }
 
+    // Método para validar contraseña
     validarContrasena(contrasena: string): Observable<boolean> {
-        return this._httpClient.post<boolean>(`${this.baseUrl}/validar-contrasena`, { contrasena });
+        const endpoint = `${this.baseUrl}/auth/validar-contrasena`;
+        
+        return this._httpClient.post<boolean>(endpoint, { contrasena }).pipe(
+            catchError(error => {
+                console.error('Error al validar contraseña:', error);
+                return of(false);
+            })
+        );
     }
 
     // Método para obtener usuarios de ejemplo
@@ -1176,5 +1311,56 @@ export class TasksService
     // Método para buscar usuarios por carnet
     buscarUsuariosPorCarnet(carnet: string): Observable<Usuario[]> {
         return this.obtenerUsuarios(carnet);
+    }
+
+    guardarHistorialNotificacion(notificacion: NotificacionPush): Observable<any> {
+        return this._httpClient.post(`${this.baseUrl}/notificaciones/historial`, notificacion);
+    }
+
+    private registrarErrorLog(error: any, contexto: string) {
+        console.group('Error de Notificación');
+        console.log('Contexto:', contexto);
+        console.log('Tipo de error:', error.constructor.name);
+        console.log('Código de estado:', error.status);
+        console.log('Mensaje de error:', error.message);
+        console.log('Cuerpo del error:', error.error);
+        console.groupEnd();
+
+        // Opcional: Guardar en localStorage
+        try {
+            const logs = JSON.parse(localStorage.getItem('error_logs') || '[]');
+            logs.push({
+                contexto,
+                mensaje: error.message,
+                timestamp: new Date().toISOString(),
+                detalles: error
+            });
+            localStorage.setItem('error_logs', JSON.stringify(logs));
+        } catch (e) {
+            console.error('Error al guardar log en localStorage', e);
+        }
+    }
+
+    // Método para descargar logs
+    private descargarLogsComoArchivo() {
+        const logs = JSON.parse(localStorage.getItem('error_logs') || '[]');
+        
+        const logTexto = logs.map(log => 
+            `[${log.timestamp}] Contexto: ${log.contexto}\n` +
+            `Mensaje: ${log.mensaje}\n` +
+            `Detalles: ${JSON.stringify(log.detalles)}\n` +
+            `---\n`
+        ).join('\n');
+
+        const blob = new Blob([logTexto], { type: 'text/plain' });
+        const nombreArchivo = `logs_${new Date().toISOString().replace(/:/g, '-')}.txt`;
+
+        const enlace = document.createElement('a');
+        enlace.href = window.URL.createObjectURL(blob);
+        enlace.download = nombreArchivo;
+        
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
     }
 }

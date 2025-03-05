@@ -73,21 +73,14 @@ export interface InventoryEquipment {
 
 export interface NotificacionPush {
     id?: string;
+    usuarioId: string;
     titulo: string;
     mensaje: string;
-    imagen?: string;
-    nombreNotificacion?: string;
-    icono?: string;
     fechaCreacion: Date;
-    fechaProgramada?: Date;
-    servicioId?: number;
-    destinatarios: {
-        usuarioId: string;
-        estado: 'enviada' | 'leída' | 'no_leída' | 'pendiente' | 'programada';
-    }[];
-    tipoEnvio: 'individual' | 'grupo' | 'todos';
-    payload?: any;
-    usuarioCreadorId?: string;
+    fechaEnvio?: Date;
+    estado?: string;
+    tipo?: string;
+    datos?: any;
 }
 
 export interface FiltroNotificacion {
@@ -101,8 +94,11 @@ export interface FiltroNotificacion {
 }
 
 export interface DestinatarioNotificacion {
-    id: string;
+    id: number;
+    usuarioId?: number;
     nombre: string;
+    deviceToken?: string;
+    carnet?: string;
     rol?: string;
     unidad?: string;
 }
