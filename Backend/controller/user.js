@@ -589,7 +589,7 @@ static async paginate(req, res) {
             const requesterId = req.user.id; // ID del usuario que hace la solicitud
 
             // Verificar que el usuario solo pueda cambiar su propia contraseña
-            if (parseInt(id) !== requesterId) {
+            if (parseInt(id) !== parseInt(requesterId)) {
                 return jsonResponse.errorResponse(
                     res,
                     403,
