@@ -37,4 +37,8 @@ modelFiles.forEach(modelName => {
   db[model.name] = model;
 });
 
+// Asegúrate de que Usuarios esté disponible
+console.log('Modelos cargados:', Object.keys(db));
+console.log('Usuarios model:', db.Usuarios);
+
 module.exports = db;

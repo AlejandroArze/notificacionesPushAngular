@@ -1,4 +1,3 @@
-
 class UserDTO {
 
     // Definimos las propiedades de la clase UserDTO que representan los datos del usuario para la vista.
@@ -12,15 +11,24 @@ class UserDTO {
     image; // Imagen del perfil del usuario.
 
     // Constructor para inicializar la instancia de la clase UserDTO con los valores proporcionados.
-    constructor(usuarios_id, nombres, apellidos, usuario, email, estado, role, image) {
-        this.usuarios_id = usuarios_id; // Asigna el identificador único del usuario.
-        this.nombres = nombres; // Asigna los nombres del usuario.
-        this.apellidos = apellidos; // Asigna los apellidos del usuario.
-        this.usuario = usuario; // Asigna el nombre de usuario (username).
-        this.email = email; // Asigna el correo electrónico del usuario.
-        this.estado = estado; // Asigna el estado del usuario, por ejemplo, si está activo (1) o inactivo (0).
-        this.role = role; // Asigna el rol del usuario, como 'admin', 'user', etc.
-        this.image = image; // Asigna la URL o ruta de la imagen de perfil del usuario.
+    constructor(
+        usuarios_id, 
+        nombres, 
+        apellidos, 
+        usuario, 
+        email, 
+        estado, 
+        role, 
+        image
+    ) {
+        this.usuarios_id = Number(usuarios_id);
+        this.nombres = nombres;
+        this.apellidos = apellidos;
+        this.usuario = usuario;
+        this.email = email;
+        this.estado = Number(estado);
+        this.role = role;
+        this.image = image;
     }
 }
 

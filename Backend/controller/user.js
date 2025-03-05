@@ -224,13 +224,41 @@ class UserController {
     // Método estático asíncrono para obtener información de un usuario 
     static async show(req, res) {
         try {
-            // Obtiene el ID del usuario a través de req.params
-            const { usuarios_id, nombres, apellidos, usuario, email, role, image, estado } = await userService.show(req.params.usuarios_id);
+            // Convierte a número entero
+            const usuarios_id = parseInt(req.params.usuarios_id, 10);
 
-            // Crea un DTO con los datos obtenidos del usuario, asegurando que `estado` sea número
-            const user = new UserDTO(usuarios_id, nombres, apellidos, usuario, email, parseInt(estado, 10), role, image);
+            // Verifica que sea un número válido
+            if (isNaN(usuarios_id)) {
+                return jsonResponse.errorResponse(
+                    res,
+                    400,
+                    "ID de usuario inválido"
+                );
+            }
 
-            // Retorna una respuesta exitosa en formato JSON indicando que el usuario existe
+            const { 
+                usuarios_id: id, 
+                nombres, 
+                apellidos, 
+                usuario, 
+                email, 
+                role, 
+                image, 
+                estado 
+            } = await userService.show(usuarios_id);
+
+            // Crea un DTO asegurándose de que los valores sean números
+            const user = new UserDTO(
+                Number(id), 
+                nombres, 
+                apellidos, 
+                usuario, 
+                email, 
+                Number(estado), 
+                role, 
+                image
+            );
+
             return jsonResponse.successResponse(
                 res,
                 200,
@@ -238,17 +266,19 @@ class UserController {
                 user
             );
         } catch (error) {
-            // Si hay un error de validación de Joi, retorna una respuesta de validación 
-            return Joi.isError(error) ? jsonResponse.validationResponse(
-                res,
-                409,
-                "Validation error",
-                error.details.map(err => err.message)
-            ) : jsonResponse.errorResponse(
-                res,
-                500,
-                error.message
-            );
+            console.error('Error en show de UserController:', error);
+            return Joi.isError(error) 
+                ? jsonResponse.validationResponse(
+                    res,
+                    409,
+                    "Validation error",
+                    error.details.map(err => err.message)
+                ) 
+                : jsonResponse.errorResponse(
+                    res,
+                    500,
+                    error.message
+                );
         }
     }
             

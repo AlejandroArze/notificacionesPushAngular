@@ -2,14 +2,15 @@ const { Model, Op } = require('sequelize'); // Agregamos Op a los imports
 const bcrypt = require("bcryptjs") // Requiere bcryptjs para encriptar contraseñas
 const jwt = require("jsonwebtoken"); // Para generar un token JWT
 const Joi = require('joi');
-const { User, sequelize } = require("../models") // Requiere el modelo 'usuarios' y la instancia de sequelize para las transacciones
+const db = require("../models"); // Importa todos los modelos
+const User = db.Usuarios; // Usa el modelo de Usuarios desde db
+const sequelize = db.sequelize; // Importa la instancia de sequelize desde db
 const storeDTO = require("../http/request/user/storeDTO") // DTO para validar los datos del usuario en la operación de almacenamiento
 const updateDTO = require("../http/request/user/updateDTO") // DTO para validar los datos del usuario en la operación de actualización
 const idDTO = require("../http/request/user/idDTO") // DTO para validar los identificadores de usuarios
 const loginDTO = require("../http/request/user/loginDTO"); // DTO para validar los datos del login
 const updateRoleDTO = require("../http/request/user/updateRoleDTO");
 const updateStatusDTO = require("../http/request/user/updateStatusDTO");
-const db = require('../models');
 
 
 class UserService {
@@ -69,45 +70,54 @@ class UserService {
 
     // Método para almacenar un nuevo usuario
     static async store(data) {
-
-        const DB = await sequelize.transaction(); // Inicia una transacción de base de datos con sequelize
-
-        console.log("Servicer: ",data)
+        const transaction = await sequelize.transaction();
+        
         try {
             // Valida los datos de entrada usando storeDTO (con Joi)
-            await storeDTO.validateAsync(data, { abortEarly: false })
+            await storeDTO.validateAsync(data, { abortEarly: false });
 
             // Encripta la contraseña del usuario
-            const hashedPassword = await bcrypt.hash(data.password, 10)
+            const hashedPassword = await bcrypt.hash(data.password, 10);
             // Asigna la imagen, si está presente; si no, usa el valor por defecto
             const image = data.image || '/uploads/default-profile.png';
 
             // Crea un nuevo usuario en la base de datos usando los campos correspondientes
             const newUser = await User.create({
-                usuario: data.usuario, // Se asigna el campo 'usuario'
-                password: hashedPassword, // Se asigna la contraseña encriptada
-                email: data.email, // Se asigna el campo 'email'
-                nombres: data.nombres, // Se asigna el nombre
-                apellidos: data.apellidos, // Se asigna el apellido
-                role: data.role, // Se asigna el rol
-                estado: 1, // Estado por defecto al crear un usuario (activo)
-                image: image  // Se asigna la imagen (si no se proporciona, usa la predeterminada)
-            })
+                usuario: data.usuario,
+                password: hashedPassword,
+                email: data.email,
+                nombres: data.nombres,
+                apellidos: data.apellidos,
+                role: data.role,
+                estado: data.estado || 1,
+                image: image
+            });
 
-            await DB.commit() // Confirma la transacción
+            await transaction.commit();
 
-            return newUser // Retorna el nuevo usuario
+            return newUser;
 
         } catch (error) {
-            await DB.rollback(); // Deshace los cambios si hay un error
-            throw error; // Lanza el error para manejarlo
+            await transaction.rollback();
+            
+            // Manejo de errores de validación de Joi
+            if (error.isJoi) {
+                throw new Error(
+                    error.details.map(detail => detail.message).join(', ')
+                );
+            }
+            
+            throw error;
         }
     }
 
     // Método para mostrar un usuario por su ID
     static async show(usuarios_id) {
         try {
-            const user = await db.Usuarios.findByPk(usuarios_id, {
+            // Convierte a número entero
+            const id = parseInt(usuarios_id, 10);
+
+            const user = await User.findByPk(id, {
                 attributes: { 
                     exclude: ['password'] 
                 }
@@ -117,16 +127,17 @@ class UserService {
                 throw new Error('Usuario no encontrado');
             }
 
-            // Devuelve exactamente los mismos campos que antes
+            // Convierte explícitamente a número
             return {
-                usuarios_id: user.usuarios_id,
+                usuarios_id: Number(user.usuarios_id),
                 nombres: user.nombres,
                 apellidos: user.apellidos,
                 usuario: user.usuario,
                 email: user.email,
                 role: user.role,
                 image: user.image,
-                estado: user.estado
+                estado: Number(user.estado),
+                _v: Number(user._v)
             };
         } catch (error) {
             console.error('Error al obtener usuario:', error);
@@ -136,12 +147,11 @@ class UserService {
 
     // Método para actualizar un usuario por su ID
     static async update(data, id) {
+        const transaction = await sequelize.transaction(); // Usa transaction en lugar de DB
 
-        const DB = await sequelize.transaction() // Inicia una transacción de base de datos
         console.log("Servicer: ",data)
         console.log("Servicer2: ",id)
         try {
-
             data.usuarios_id = id // Asigna el ID al objeto de datos
 
             // Valida los datos de entrada usando updateDTO
@@ -166,13 +176,13 @@ class UserService {
                 image: image
             }, { where: { usuarios_id: id } }); // Condición para actualizar el registro por ID
 
-            await DB.commit() // Confirma la transacción
+            await transaction.commit();
 
             return user // Retorna el usuario actualizado
 
         } catch (error) {
-            await DB.rollback() // Deshace los cambios si hay un error
-            throw error // Lanza el error para manejarlo
+            await transaction.rollback(); // Deshace los cambios si hay un error
+            throw error; // Lanza el error para manejarlo
         }
     }
 

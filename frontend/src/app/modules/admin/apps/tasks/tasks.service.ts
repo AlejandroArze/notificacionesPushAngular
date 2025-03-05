@@ -948,15 +948,20 @@ export class TasksService
         page: number = 1,
         limit: number = 100
     ): Observable<{ pagination: InventoryPagination; services: Servicio[] }> {
+        // Modificar los parámetros para adaptarse a la nueva estructura de API
         let params = new HttpParams()
             .set('page', page.toString())
             .set('limit', limit.toString())
             .set('tipo', tipoServicio)
             .set('estado', this.ESTADO_SIN_ASIGNAR);
 
-        return this._httpClient.get<any>(`${this.baseUrl}/service/board`, { params })
+        // Cambiar el endpoint a uno que esté disponible actualmente
+        return this._httpClient.get<any>(`${this.baseUrl}/service`, { params })
             .pipe(
                 map(response => {
+                    // Verificar la estructura de la respuesta
+                    console.log('Respuesta de getServicesByType:', response);
+
                     const pagination: InventoryPagination = {
                         length: response.data.total,
                         size: response.data.perPage,
@@ -966,27 +971,53 @@ export class TasksService
                         endIndex: response.data.currentPage * response.data.perPage,
                     };
 
-                    const services = response.data.data.map(item => ({
-                        servicios_id: item.servicios_id,
-                        nombreSolicitante: item.nombreSolicitante || '',
-                        problema: item.problema || '',
-                        tipo: item.tipo,
-                        estado: item.estado,
-                        tecnicoAsignado: item.tecnicoAsignado || null,
-                        oficinaSolicitante: item.oficinaSolicitante || '',
-                        // ... otros campos necesarios
-                    }));
+                    // Mapear los servicios, considerando la posible estructura anidada
+                    const services = response.data.data
+                        .map((item: any) => ({
+                            servicios_id: item.servicios_id?.servicios_id || item.servicios_id,
+                            nombreSolicitante: item.nombreSolicitante || item.servicios_id?.nombreSolicitante || '',
+                            problema: item.problema || item.servicios_id?.problema || '',
+                            tipo: item.tipo || item.servicios_id?.tipo,
+                            estado: item.estado || item.servicios_id?.estado,
+                            tecnicoAsignado: item.tecnicoAsignado || item.servicios_id?.tecnicoAsignado || null,
+                            oficinaSolicitante: item.oficinaSolicitante || item.servicios_id?.oficinaSolicitante || '',
+                        }))
+                        .filter((service: any) => service.estado === this.ESTADO_SIN_ASIGNAR && service.tipo === tipoServicio);
 
-                    // Actualizar el estado global
-                    const currentServices = this._services.value || [];
-                    const updatedServices = [
-                        ...currentServices.filter(s => s.tipo !== tipoServicio),
-                        ...services
-                    ];
-                    this._services.next(updatedServices);
+                    // Eliminar duplicados
+                    const uniqueServices = services.filter((service, index, self) =>
+                        index === self.findIndex((s) => s.servicios_id === service.servicios_id)
+                    );
+
+                    // Ordenar por ID de forma descendente
+                    const sortedServices = uniqueServices.sort((a, b) => b.servicios_id - a.servicios_id);
+
+                    // Actualizar estado global
+                    this._services.next(sortedServices);
                     this._pagination.next(pagination);
 
-                    return { pagination, services };
+                    return { pagination, services: sortedServices };
+                }),
+                catchError(error => {
+                    console.error('Error en getServicesByType:', error);
+                    
+                    // Mostrar mensaje de error
+                    //this._snackBar.open('No se pudieron cargar los servicios', 'Cerrar', { 
+                      //  duration: 3000 
+                    //});
+
+                    // Devolver un observable con datos vacíos
+                    return of({ 
+                        pagination: {
+                            length: 0,
+                            size: 0,
+                            page: 0,
+                            lastPage: 0,
+                            startIndex: 0,
+                            endIndex: 0,
+                        }, 
+                        services: [] 
+                    });
                 })
             );
     }
@@ -1035,7 +1066,7 @@ export class TasksService
         };
 
         // Log detallado de toda la solicitud
-        console.group('�� Detalles Completos de Solicitud de Notificación');
+        console.group('Detalles Completos de Solicitud de Notificación');
         console.log('📍 Endpoint:', endpoint);
         console.log('🔑 Token completo:', token);
         console.log('📦 Payload completo:', JSON.stringify(payload, null, 2));

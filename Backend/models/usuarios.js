@@ -37,8 +37,13 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     estado: {
-      type: DataTypes.TEXT,
+      type: DataTypes.INTEGER,
       allowNull: true
+    },
+    _v: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: '_v'
     }
   }, {
     tableName: 'usuarios',

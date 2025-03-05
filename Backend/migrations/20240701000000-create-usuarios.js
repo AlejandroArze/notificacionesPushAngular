@@ -38,7 +38,11 @@ module.exports = {
         allowNull: true
       },
       estado: {
-        type: Sequelize.TEXT,
+        type: Sequelize.INTEGER,
+        allowNull: true
+      },
+      _v: {
+        type: Sequelize.INTEGER,
         allowNull: true
       },
       created_at: {
