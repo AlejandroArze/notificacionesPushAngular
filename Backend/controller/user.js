@@ -371,64 +371,48 @@ static async getAll(req, res) {
     // Método para actualizar el rol de un usuario
     static async updateRole(req, res) {
         try {
-            const id = req.params.usuarios_id;
-            const roleInt = parseInt(req.body.role, 10); // Convertimos el role a número
-            const requesterRole = parseInt(req.user.role, 10); // Aseguramos que el rol del solicitante sea número
+            // Convierte a número entero
+            const usuarios_id = parseInt(req.params.usuarios_id, 10);
 
-            // Validar que el rol sea un número válido
-            if (isNaN(roleInt)) {
+            // Verifica que sea un número válido
+            if (isNaN(usuarios_id)) {
                 return jsonResponse.errorResponse(
                     res,
                     400,
-                    "El rol debe ser un número válido"
+                    "ID de usuario inválido"
                 );
             }
 
-            // Validar permisos según el rol del solicitante
-            if (requesterRole === 2) {
-                // Si el solicitante tiene rol 2, solo puede asignar roles 2 o 3
-                if (![2, 3].includes(roleInt)) {
-                    return jsonResponse.errorResponse(
-                        res,
-                        403,
-                        "Con rol 2 solo puedes asignar roles 2 o 3"
-                    );
-                }
-            } else if (requesterRole !== 1) {
-                // Si no es rol 1 ni 2, no puede cambiar roles
-                return jsonResponse.errorResponse(
-                    res,
-                    403,
-                    "No tienes permisos para cambiar roles"
-                );
-            }
+            // Llama al servicio para actualizar el rol
+            const updatedUser = await userService.updateRole(req.body, usuarios_id);
 
-            // Actualiza el rol del usuario
-            await userService.updateRole({
-                role: roleInt, // Enviamos el rol como número
-                requesterRole
-            }, id);
-
-            // Obtiene los datos actualizados del usuario
-            const updatedUser = await userService.show(id);
-
-            // Retorna una respuesta exitosa con los datos actualizados
+            // Retorna una respuesta exitosa
             return jsonResponse.successResponse(
                 res,
                 200,
                 "El rol del usuario ha sido actualizado exitosamente",
-                {
-                    usuarios_id: updatedUser.usuarios_id,
-                    role: updatedUser.role,
-                    nombres: updatedUser.nombres,
-                    apellidos: updatedUser.apellidos
-                }
+                updatedUser
             );
+
         } catch (error) {
-            console.error('Error al actualizar el rol del usuario:', error);
-            return Joi.isError(error)
-                ? jsonResponse.validationResponse(res, 409, "Error de validación", error.details.map(err => err.message))
-                : jsonResponse.errorResponse(res, 500, error.message);
+            console.error('Error en updateRole de UserController:', error);
+            
+            // Manejo de errores de validación
+            if (error.isJoi) {
+                return jsonResponse.validationResponse(
+                    res,
+                    409,
+                    "Validation error",
+                    error.details.map(err => err.message)
+                );
+            }
+            
+            // Manejo de otros errores
+            return jsonResponse.errorResponse(
+                res,
+                500,
+                error.message
+            );
         }
     }
 

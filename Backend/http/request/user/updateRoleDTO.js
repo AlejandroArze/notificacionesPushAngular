@@ -1,41 +1,40 @@
 const Joi = require("joi");
-const { User } = require("../../../models");
+const db = require('../../../models'); // Importa todos los modelos
 
+// Validación personalizada para verificar si el usuario existe
+const userExists = async (usuarios_id) => {
+    try {
+        // Convierte a número entero
+        const id = parseInt(usuarios_id, 10);
+        
+        // Usa el modelo de Usuarios desde db
+        const user = await db.Usuarios.findByPk(id);
+        
+        if (!user) {
+            throw new Error('Usuario no encontrado');
+        }
+        
+        return id;
+    } catch (error) {
+        console.error('Error en validación de usuario:', error);
+        throw new Error('Error al validar el usuario');
+    }
+};
+
+// Define el esquema de validación para la actualización de rol
 const updateRoleDTO = Joi.object({
-    usuarios_id: Joi.number().integer()
+    usuarios_id: Joi.number()
+        .integer()
+        .positive()
         .required()
-        .external(async (usuarios_id) => {
-            const exists = await User.findByPk(usuarios_id);
-            if (!exists) {
-                throw new Joi.ValidationError('ID does not exist', [{
-                    message: 'ID does not exist',
-                    path: ['usuarios_id'],
-                    type: 'id.not_found',
-                    context: { key: 'usuarios_id' }
-                }], usuarios_id);
-            }
-        })
-        .messages({
-            'number.base': 'ID debe ser un número entero',
-            'any.required': 'ID es requerido'
-        }),
-
-    role: Joi.number().integer()
-        .valid(1, 2, 3)
+        .external(userExists),
+    
+    role: Joi.string()
+        .valid('1', '2', '3')
         .required()
         .messages({
-            'number.base': 'El rol debe ser un número entero',
-            'any.required': 'El rol es requerido',
-            'any.only': 'El rol debe ser 1, 2 o 3'
-        }),
-
-    requesterRole: Joi.number().integer()
-        .valid(1, 2)
-        .required()
-        .messages({
-            'number.base': 'El rol del solicitante debe ser un número entero',
-            'any.required': 'El rol del solicitante es requerido',
-            'any.only': 'El rol del solicitante debe ser 1 o 2'
+            'any.only': 'El rol no es válido',
+            'any.required': 'El rol es obligatorio'
         })
 });
 

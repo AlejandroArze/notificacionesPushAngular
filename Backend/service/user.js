@@ -296,30 +296,41 @@ class UserService {
 
     // Método para actualizar el rol de un usuario
     static async updateRole(data, id) {
-        const DB = await sequelize.transaction();
+        const transaction = await sequelize.transaction();
+        
         try {
-            data.usuarios_id = id;
-
-            // Valida los datos usando updateRoleDTO
-            await updateRoleDTO.validateAsync(data, { abortEarly: false });
-
-            // Verifica las reglas de negocio para la actualización del rol
-            if (data.requesterRole === 2 && data.role === 1) {
-                throw new Error('Un usuario con rol 2 no puede asignar el rol 1');
-            }
-
-            // Actualiza solo el rol del usuario
-            const user = await User.update({
-                role: data.role
-            }, { 
-                where: { usuarios_id: id },
-                returning: true
+            // Valida los datos de entrada
+            await updateRoleDTO.validateAsync({ 
+                usuarios_id: id, 
+                role: data.role 
             });
 
-            await DB.commit();
-            return user;
+            // Actualiza el rol del usuario
+            const [updatedRows] = await User.update(
+                { role: data.role },
+                { where: { usuarios_id: id } }
+            );
+
+            if (updatedRows === 0) {
+                throw new Error('Usuario no encontrado');
+            }
+
+            // Busca el usuario actualizado para devolver los detalles
+            const updatedUser = await User.findByPk(id, {
+                attributes: ['usuarios_id', 'role', 'nombres', 'apellidos']
+            });
+
+            await transaction.commit();
+
+            return {
+                usuarios_id: Number(updatedUser.usuarios_id),
+                role: updatedUser.role,
+                nombres: updatedUser.nombres,
+                apellidos: updatedUser.apellidos
+            };
+
         } catch (error) {
-            await DB.rollback();
+            await transaction.rollback();
             throw error;
         }
     }
