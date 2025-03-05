@@ -177,41 +177,86 @@ export class FinanceService {
 
     // Método para obtener notificaciones de ejemplo
     obtenerNotificaciones(): Observable<Notificacion[]> {
-        // Datos de ejemplo
         const notificacionesEjemplo: Notificacion[] = [
             {
                 id: 1,
                 uuid: 'uuid-1',
                 titulo: 'Mantenimiento Programado',
                 mensaje: 'Se realizará mantenimiento en el sistema el próximo lunes',
+                imagen: '/assets/images/notifications/maintenance.jpg',
+                nombreNotificacion: 'Mantenimiento Sistema',
                 tipoEnvio: 'grupo',
                 roles: ['admin', 'tecnico'],
                 unidades: ['Sistemas', 'Soporte'],
                 programarEnvio: true,
                 fechaProgramada: new Date('2024-02-15T10:00:00'),
+                horaProgramada: '10:00',
+                tipoProgramacion: 'unica',
                 estado: 'programada',
+                fechaCreacion: new Date('2024-02-15T10:00:00'),
+                responsableCreacion: 'Juan Pérez',
                 usuarioCreadorId: 123,
                 destinatarios: [
-                    { usuarioId: '1', estado: 'pendiente' },
-                    { usuarioId: '2', estado: 'pendiente' }
-                ]
+                    { usuarioId: '1', nombre: 'María González', estado: 'pendiente' },
+                    { usuarioId: '2', nombre: 'Carlos Rodríguez', estado: 'pendiente' }
+                ],
+                servicioId: 501,
+                createdAt: new Date(),
+                updatedAt: new Date()
             },
             {
                 id: 2,
                 uuid: 'uuid-2',
                 titulo: 'Actualización de Sistemas',
-                mensaje: 'Nueva versión del software disponible',
+                mensaje: 'Nueva versión del software disponible con mejoras de seguridad',
+                imagen: '/assets/images/notifications/update.jpg',
+                nombreNotificacion: 'Actualización Software',
                 tipoEnvio: 'todos',
                 programarEnvio: false,
                 estado: 'enviada',
+                fechaCreacion: new Date('2024-02-20T14:30:00'),
+                responsableCreacion: 'Ana Martínez',
                 usuarioCreadorId: 456,
                 destinatarios: [
-                    { usuarioId: '3', estado: 'leída' },
-                    { usuarioId: '4', estado: 'enviada' }
-                ]
+                    { usuarioId: '3', nombre: 'Luis Fernández', estado: 'leída' },
+                    { usuarioId: '4', nombre: 'Elena Sánchez', estado: 'enviada' }
+                ],
+                servicioId: 502,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            },
+            {
+                id: 3,
+                uuid: 'uuid-3',
+                titulo: 'Capacitación de Seguridad',
+                mensaje: 'Próximo taller de seguridad informática para todo el personal de TI',
+                imagen: '/assets/images/notifications/training.jpg',
+                nombreNotificacion: 'Taller Seguridad Informática',
+                tipoEnvio: 'grupo',
+                roles: ['tecnico'],
+                unidades: ['Sistemas'],
+                programarEnvio: true,
+                fechaProgramada: new Date('2024-03-10T14:00:00'),
+                horaProgramada: '14:00',
+                tipoProgramacion: 'recurrente',
+                frecuencia: 'mensual',
+                diasSeleccionados: { 
+                    lunes: true, 
+                    miercoles: true 
+                },
+                estado: 'programada',
+                fechaCreacion: new Date('2024-03-10T09:45:00'),
+                responsableCreacion: 'Pedro Ramírez',
+                usuarioCreadorId: 789,
+                destinatarios: [
+                    { usuarioId: '5', nombre: 'Laura Torres', estado: 'pendiente' },
+                    { usuarioId: '6', nombre: 'Roberto Mendoza', estado: 'pendiente' }
+                ],
+                servicioId: 503,
+                createdAt: new Date(),
+                updatedAt: new Date()
             }
         ];
-
         return of(notificacionesEjemplo);
     }
 
@@ -222,74 +267,77 @@ export class FinanceService {
         );
     }
 
-    // Método para obtener notificaciones paginadas
-    obtenerNotificacionesPaginadas(page: number = 1, limit: number = 10): Observable<NotificacionPaginacion> {
-        // Datos de ejemplo
-        const notificacionesEjemplo: Notificacion[] = [
-            {
-                id: 1,
-                uuid: 'uuid-1',
-                titulo: 'Mantenimiento Programado',
-                mensaje: 'Se realizará mantenimiento en el sistema el próximo lunes',
-                tipoEnvio: 'grupo',
-                roles: ['admin', 'tecnico'],
-                unidades: ['Sistemas', 'Soporte'],
-                programarEnvio: true,
-                fechaProgramada: new Date('2024-02-15T10:00:00'),
-                estado: 'programada',
-                usuarioCreadorId: 123,
-                responsableCreacion: 'Juan Pérez',
-                destinatarios: [
-                    { usuarioId: '1', nombre: 'María González', estado: 'pendiente' },
-                    { usuarioId: '2', nombre: 'Carlos Rodríguez', estado: 'pendiente' }
-                ]
-            },
-            {
-                id: 2,
-                uuid: 'uuid-2',
-                titulo: 'Actualización de Sistemas',
-                mensaje: 'Nueva versión del software disponible',
-                tipoEnvio: 'todos',
-                programarEnvio: false,
-                estado: 'enviada',
-                usuarioCreadorId: 456,
-                responsableCreacion: 'Ana Martínez',
-                destinatarios: [
-                    { usuarioId: '3', nombre: 'Luis Fernández', estado: 'leída' },
-                    { usuarioId: '4', nombre: 'Elena Sánchez', estado: 'enviada' }
-                ]
-            },
-            // Agregar más notificaciones de ejemplo para simular paginación
-            {
-                id: 3,
-                uuid: 'uuid-3',
-                titulo: 'Capacitación de Seguridad',
-                mensaje: 'Próximo taller de seguridad informática',
-                tipoEnvio: 'grupo',
-                roles: ['tecnico'],
-                unidades: ['Sistemas'],
-                programarEnvio: true,
-                fechaProgramada: new Date('2024-03-10T14:00:00'),
-                estado: 'programada',
-                usuarioCreadorId: 789,
-                responsableCreacion: 'Pedro Ramírez',
-                destinatarios: [
-                    { usuarioId: '5', nombre: 'Laura Torres', estado: 'pendiente' }
-                ]
+    // Método para obtener notificaciones paginadas con datos de ejemplo
+    obtenerNotificacionesPaginadas(
+        page: number = 1, 
+        limit: number = 10
+    ): Observable<{
+        data: Notificacion[];
+        total: number;
+        page: number;
+        perPage: number;
+        totalPages: number;
+    }> {
+        return this.obtenerNotificaciones().pipe(
+            map(notificaciones => {
+                const startIndex = (page - 1) * limit;
+                const endIndex = startIndex + limit;
+                const paginatedData = notificaciones.slice(startIndex, endIndex);
+                const datosFinales = paginatedData.length > 0 ? paginatedData : notificaciones.slice(0, limit);
+                return {
+                    data: datosFinales,
+                    total: notificaciones.length,
+                    page,
+                    perPage: limit,
+                    totalPages: Math.ceil(notificaciones.length / limit)
+                };
+            })
+        );
+    }
+
+    // Método para obtener servicios
+    obtenerServicios(
+        fechaInicio: string, 
+        fechaFin: string, 
+        tipoServicio: string, 
+        tecnico: string, 
+        page: number = 1, 
+        limit: number = 10
+    ): Observable<{
+        data: {
+            data: Array<{
+                servicios_id: number;
+                nombreSolicitante: string;
+                tipo: string;
+                tecnicoAsignado: number;
+                fechaInicio: string;
+                fechaTerminado: string;
+                numero: number;
+            }>;
+            total: number;
+        }
+    }> {
+        const params = new HttpParams()
+            .set('fechaInicio', fechaInicio)
+            .set('fechaFin', fechaFin)
+            .set('tipoServicio', tipoServicio)
+            .set('tecnico', tecnico)
+            .set('page', page.toString())
+            .set('limit', limit.toString());
+
+        return this._httpClient.get<{
+            data: {
+                data: Array<{
+                    servicios_id: number;
+                    nombreSolicitante: string;
+                    tipo: string;
+                    tecnicoAsignado: number;
+                    fechaInicio: string;
+                    fechaTerminado: string;
+                    numero: number;
+                }>;
+                total: number;
             }
-        ];
-
-        // Simular paginación
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
-        const paginatedData = notificacionesEjemplo.slice(startIndex, endIndex);
-
-        return of({
-            data: paginatedData,
-            total: notificacionesEjemplo.length,
-            page: page,
-            perPage: limit,
-            totalPages: Math.ceil(notificacionesEjemplo.length / limit)
-        });
+        }>(`${this._apiUrl}/servicios`, { params });
     }
 }

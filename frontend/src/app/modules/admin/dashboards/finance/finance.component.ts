@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
@@ -22,9 +22,8 @@ import { MetricsResponse } from './finance.service';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { environment } from 'environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectorRef } from '@angular/core';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { Notificacion } from './finance.types';
+import { animate, state, style, transition, trigger } from '@angular/animations';
 
 // Registrar el plugin
 Chart.register(ChartDataLabels);
@@ -38,6 +37,69 @@ interface jsPDFWithPlugin extends jsPDF {
 @Component({
     selector: 'finance',
     templateUrl: './finance.component.html',
+    animations: [
+        trigger('detailExpand', [
+            state('collapsed', style({height: '0px', minHeight: '0'})),
+            state('expanded', style({height: '*'})),
+            transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'))
+        ])
+    ],
+    styles: [
+        /* language=SCSS */
+        `
+            .detail-row {
+                height: 0;
+                line-height: 0;
+                overflow: hidden;
+                visibility: collapse;
+                opacity: 0;
+                transition: all 225ms cubic-bezier(0.4, 0.0, 0.2, 1);
+            }
+
+            .detail-row.expanded {
+                height: auto;
+                line-height: normal;
+                visibility: visible;
+                opacity: 1;
+            }
+
+            .detail-content {
+                background: white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            @media (prefers-color-scheme: dark) {
+                .detail-content {
+                    background: #1e293b;
+                }
+            }
+
+            .mat-mdc-button-touch-target {
+                transition: transform 0.3s ease;
+                
+                &.rotate-180 {
+                    transform: rotate(180deg);
+                }
+            }
+
+            .mat-expansion-panel {
+                box-shadow: none;
+                background: transparent;
+
+                &:not(.mat-expanded) {
+                    .mat-expansion-panel-header {
+                        &:not([aria-disabled='true']) {
+                            &.cdk-keyboard-focused,
+                            &.cdk-program-focused,
+                            &:hover {
+                                background: transparent;
+                            }
+                        }
+                    }
+                }
+            }
+        `
+    ],
     standalone: true,
     imports: [
         CommonModule,
@@ -52,7 +114,6 @@ interface jsPDFWithPlugin extends jsPDF {
         MatInputModule,
         MatIconModule,
         MatTooltipModule,
-        MatExpansionModule
     ],
 })
 export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -80,16 +141,15 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
     currentPage: number = 0;
 
     displayedColumns: string[] = [
-        'index',
-        'numero',
-        'tipoServicio',
-        'tecnicoAsignado',
-        'fechaInicio',
-        'fechaTerminado',
-        'solicitante'
+        'titulo', 
+        'estado', 
+        'tipoEnvio', 
+        'fechaCreacion', 
+        'responsable', 
+        'detalles'
     ];
     
-    dataSource = new MatTableDataSource([]);
+    dataSource = new MatTableDataSource<Notificacion>([]);
 
     private tecnicosMap: Map<number, string> = new Map();
     
@@ -125,6 +185,8 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
     totalNotificaciones: number = 0;
     paginaActualNotificaciones: number = 1;
     selectedNotificacion: Notificacion | null = null;
+
+    isExpansionDetailRow = (i: number, row: any) => row.hasOwnProperty('detailRow');
 
     constructor(
         private _financeService: FinanceService,
@@ -164,6 +226,11 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     ngOnInit(): void {
+        console.log('Inicializando componente Finance');
+        
+        // Configurar el tamaño de página inicial
+        this.notificationPageSize = 10;
+        
         this._scrumboardService.getTecnicos()
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((tecnicos) => {
@@ -175,7 +242,7 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
                 });
             });
 
-        this.consultar();
+        // Cargar notificaciones al iniciar
         this.cargarNotificaciones();
     }
 
@@ -196,8 +263,9 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
         if (this.notificacionesPaginator) {
             this.notificacionesPaginator.page
                 .pipe(takeUntil(this._unsubscribeAll))
-                .subscribe(() => {
-                    this.cargarNotificaciones(this.notificacionesPaginator.pageIndex + 1);
+                .subscribe((event) => {
+                    console.log('Evento de paginador:', event);
+                    this.onPageChange(event);
                 });
         }
     }
@@ -218,13 +286,36 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
         this.currentPage = 0;
         if (this.paginator) {
             this.paginator.pageIndex = 0;
-            // Asegurarse de que pageSize esté sincronizado
             this.pageSize = this.paginator.pageSize;
         }
         this.loadPage();
-        
-        // Cargar métricas
         this.loadMetrics();
+
+        this._financeService.obtenerServicios(
+            this.fechaInicio, 
+            this.fechaFin, 
+            this.tipoServicio, 
+            this.tecnico, 
+            this.currentPage, 
+            this.pageSize
+        ).subscribe(response => {
+            // Convertir los datos a Notificacion
+            const notificaciones: Notificacion[] = response.data.data.map(item => ({
+                titulo: item.nombreSolicitante,
+                mensaje: `Servicio ${item.numero}`,
+                estado: 'pendiente', // Valor por defecto
+                tipoEnvio: 'grupo',
+                fechaCreacion: new Date(item.fechaInicio),
+                responsableCreacion: 'Sistema',
+                nombreSolicitante: item.nombreSolicitante,
+                numero: item.numero,
+                tipo: item.tipo,
+                servicioId: item.servicios_id
+            }));
+
+            this.dataSource.data = notificaciones;
+            this.totalItems = response.data.total;
+        });
     }
 
     loadPage(): void {
@@ -236,7 +327,21 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
             page: this.paginator ? this.paginator.pageIndex + 1 : 1,
             limit: this.pageSize
         }).subscribe(response => {
-            this.dataSource.data = response.data.data;
+            // Convertir los datos a Notificacion
+            const notificaciones: Notificacion[] = response.data.data.map(item => ({
+                titulo: item.nombreSolicitante,
+                mensaje: `Servicio ${item.numero}`,
+                estado: 'pendiente',
+                tipoEnvio: 'grupo',
+                fechaCreacion: new Date(item.fechaInicio),
+                responsableCreacion: 'Sistema',
+                nombreSolicitante: item.nombreSolicitante,
+                numero: item.numero,
+                tipo: item.tipo,
+                servicioId: item.servicios_id
+            }));
+
+            this.dataSource.data = notificaciones;
             this.totalItems = response.data.total;
         });
     }
@@ -894,16 +999,58 @@ export class FinanceComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     cargarNotificaciones(pagina: number = 1) {
+        console.log('Método cargarNotificaciones llamado - Página:', pagina, 'Tamaño de página:', this.notificationPageSize);
+        
         this._financeService.obtenerNotificacionesPaginadas(pagina, this.notificationPageSize)
-            .subscribe(resultado => {
-                this.notificaciones = resultado.data;
-                this.totalNotificaciones = resultado.total;
-                this.paginaActualNotificaciones = resultado.page;
+            .subscribe({
+                next: (resultado) => {
+                    console.log('Resultado de obtenerNotificacionesPaginadas:', resultado);
+                    
+                    if (resultado && resultado.data && resultado.data.length > 0) {
+                        this.dataSource.data = resultado.data;
+                        this.totalNotificaciones = resultado.total;
+                        this.paginaActualNotificaciones = resultado.page;
+                        
+                        console.log('Datos cargados:', {
+                            cantidadDatos: this.dataSource.data.length,
+                            totalNotificaciones: this.totalNotificaciones,
+                            paginaActual: this.paginaActualNotificaciones
+                        });
+                    } else {
+                        console.warn('No se encontraron notificaciones');
+                        this.dataSource.data = [];
+                    }
+                    
+                    // Forzar detección de cambios
+                    this.cdr.detectChanges();
+                },
+                error: (error) => {
+                    console.error('Error al cargar notificaciones:', error);
+                    this.dataSource.data = [];
+                    this.cdr.detectChanges();
+                }
             });
     }
 
-    toggleNotificacionDetails(notificacion: Notificacion) {
+    toggleDetails(notificacion: Notificacion): void {
+        // Si la notificación ya está seleccionada, deseleccionarla
         this.selectedNotificacion = this.selectedNotificacion === notificacion ? null : notificacion;
+    }
+
+    onPageChange(event: any): void {
+        console.log('Evento de cambio de página:', event);
+        
+        // Verificar que el evento tenga las propiedades esperadas
+        if (event && event.pageSize && event.pageIndex !== undefined) {
+            this.pageSize = event.pageSize;
+            const nuevaPagina = event.pageIndex + 1;
+            
+            console.log('Cargando página:', nuevaPagina, 'Tamaño de página:', this.pageSize);
+            
+            this.cargarNotificaciones(nuevaPagina);
+        } else {
+            console.error('Evento de paginación inválido:', event);
+        }
     }
 }
 
