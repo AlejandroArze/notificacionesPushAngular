@@ -5,7 +5,7 @@ const jsonResponse = require("../http/response/jsonResponse");
 // Importa el Data Transfer Object (DTO) que define la estructura de un usuario
 const UserDTO = require("../http/request/user/responseDTO");
 const { updateDTO } = require('../http/request/user/updateDTO');
-const { User } = require('../models'); 
+const db = require('../models');
 const bcrypt = require('bcryptjs');
 const loginSchema = require("../http/request/user/loginDTO");
 // Importa Joi para validación de datos
@@ -20,16 +20,21 @@ class UserController {
     // Método para iniciar sesión
     static async login(req, res) {
         try {
-            console.log('Iniciando proceso de login con datos:', req.body);
+            const { email, password } = req.body;
+            console.log('Iniciando proceso de login con datos:', { email, password });
             
             // Valida el cuerpo de la solicitud   
             await loginSchema.validateAsync(req.body);
             console.log('Validación del schema exitosa');
 
-            const { email, password } = req.body;
-
-            // Verifica si el correo electrónico existe en la base de datos
-            const user = await User.findOne({ where: { email } });
+            // Usa findOne sin especificar columnas especiales
+            const user = await db.Usuarios.findOne({ 
+                where: { email: email },
+                // Opcional: excluir columnas no deseadas
+                attributes: { 
+                    exclude: ['__v'] 
+                }
+            });
             console.log('Usuario encontrado:', user ? 'Sí' : 'No');
 
             if (!user) {
@@ -66,19 +71,24 @@ class UserController {
             });
 
         } catch (error) {
-            console.error('Error completo durante el login:', error);
-            if (error.isJoi) {
-                console.log('Error de validación Joi:', error.details);
-                return res.status(400).json({
-                    message: 'Error de validación',
-                    details: error.details.map(err => err.message)
-                });
+            console.error('Error detallado durante el inicio de sesión:', error);
+            
+            // Manejo más detallado de errores
+            if (error.name === 'SequelizeDatabaseError') {
+                return jsonResponse.errorResponse(
+                    res, 
+                    500, 
+                    'Error en la base de datos', 
+                    error.message
+                );
             }
-            console.error('Error durante el inicio de sesión:', error.message);
-            return res.status(500).json({ 
-                message: 'Ocurrió un error inesperado',
-                error: error.message 
-            });
+
+            return jsonResponse.errorResponse(
+                res, 
+                500, 
+                'Error en el inicio de sesión', 
+                error.message
+            );
         }
     }
     //Método para iniciar sesion con el token
@@ -98,7 +108,7 @@ class UserController {
                 }
 
                 // Buscar al usuario en la base de datos usando la información del token
-                const user = await User.findOne({ where: { usuarios_id: decoded.id } });
+                const user = await db.Usuarios.findOne({ where: { usuarios_id: decoded.id } });
 
                 if (!user) {
                     return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -212,13 +222,13 @@ class UserController {
     
 
     // Método estático asíncrono para obtener información de un usuario 
-    /*static async show(req, res) {
+    static async show(req, res) {
         try {
             // Obtiene el ID del usuario a través de req.params
             const { usuarios_id, nombres, apellidos, usuario, email, role, image, estado } = await userService.show(req.params.usuarios_id);
 
             // Crea un DTO con los datos obtenidos del usuario, asegurando que `estado` sea número
-            const user = new UserDTO(usuarios_id, nombres, apellidos, usuario, email, role, image, parseInt(estado, 10));
+            const user = new UserDTO(usuarios_id, nombres, apellidos, usuario, email, parseInt(estado, 10), role, image);
 
             // Retorna una respuesta exitosa en formato JSON indicando que el usuario existe
             return jsonResponse.successResponse(
@@ -240,67 +250,7 @@ class UserController {
                 error.message
             );
         }
-    }*/
-       /* static async show(req, res) {
-            try {
-                const userData = await userService.show(req.params.usuarios_id);
-                const { usuarios_id, nombres, apellidos, usuario, email, role, image, estado } = userData;
-                console.log('Datos del usuario antes de enviar:', userData);
-                const user = {
-                    usuarios_id,
-                    nombres,
-                    apellidos,
-                    usuario,
-                    email,
-                    role,
-                    image,
-                    estado
-                };
-        
-                return jsonResponse.successResponse(res, 200, "User exists", user);
-            } catch (error) {
-                return Joi.isError(error) ? 
-                    jsonResponse.validationResponse(res, 409, "Validation error", error.details.map(err => err.message)) :
-                    jsonResponse.errorResponse(res, 500, error.message);
-            }
-        }*/
-            static async show(req, res) {
-                try {
-                    // Obtiene el ID del usuario a través de req.params
-                    console.log('ID del usuario en la solicitud:', req.params.usuarios_id);
-            
-                    const { usuarios_id, nombres, apellidos, usuario, email, role, image, estado } = await userService.show(req.params.usuarios_id);
-                    
-                    console.log('Datos del usuario obtenidos:', { usuarios_id, nombres, apellidos, usuario, email, role, image, estado });
-            
-                    // Crea un DTO con los datos obtenidos del usuario, asegurando que `estado` sea número
-                    const user = new UserDTO(usuarios_id, nombres, apellidos, usuario, email, parseInt(estado, 10), role, image);
-                    
-                    console.log('DTO creado con los datos del usuario:', user);
-            
-                    // Retorna una respuesta exitosa en formato JSON indicando que el usuario existe
-                    return jsonResponse.successResponse(
-                        res,
-                        200,
-                        "User exists",
-                        user
-                    );
-                } catch (error) {
-                    console.error('Error al obtener los datos del usuario:', error);
-                    
-                    // Si hay un error de validación de Joi, retorna una respuesta de validación
-                    return Joi.isError(error) ? jsonResponse.validationResponse(
-                        res,
-                        409,
-                        "Validation error",
-                        error.details.map(err => err.message)
-                    ) : jsonResponse.errorResponse(
-                        res,
-                        500,
-                        error.message
-                    );
-                }
-            }
+    }
             
         
         
@@ -310,7 +260,7 @@ class UserController {
 static async getAll(req, res) {
     try {
         // Obtén todos los usuarios desde la base de datos
-        const usuarios = await User.findAll(); // Cambia esto si usas otro ORM
+        const usuarios = await db.Usuarios.findAll(); // Cambia esto si usas otro ORM
 
         // Si no hay usuarios, retorna una respuesta con un mensaje adecuado
         if (!usuarios || usuarios.length === 0) {
@@ -353,7 +303,7 @@ static async getAll(req, res) {
             console.log("ID del usuario:", id);
 
             // Obtener el usuario actual para mantener la imagen existente si no se sube una nueva
-            const currentUser = await User.findByPk(id);
+            const currentUser = await db.Usuarios.findByPk(id);
             if (!currentUser) {
                 return jsonResponse.errorResponse(res, 404, "Usuario no encontrado");
             }
@@ -634,7 +584,7 @@ static async paginate(req, res) {
             }
 
             // Obtener el usuario actual
-            const currentUser = await User.findByPk(id);
+            const currentUser = await db.Usuarios.findByPk(id);
             if (!currentUser) {
                 return jsonResponse.errorResponse(
                     res,
@@ -666,7 +616,7 @@ static async paginate(req, res) {
             const hashedPassword = await bcrypt.hash(newPassword, 10);
 
             // Actualizar la contraseña
-            await User.update(
+            await db.Usuarios.update(
                 { password: hashedPassword },
                 { where: { usuarios_id: id } }
             );

@@ -6,7 +6,6 @@ const Sequelize = require('sequelize'); // Importa Sequelize, un ORM para intera
 const basename = path.basename(__filename); // Obtiene el nombre base del archivo actual.
 const env = process.env.NODE_ENV || 'development'; // Obtiene el entorno de ejecución (por ejemplo, 'development', 'production'), por defecto es 'development'.
 const config = require(__dirname + '/../config/config.js')[env]; // Carga la configuración de la base de datos correspondiente al entorno.
-const db = {}; // Crea un objeto vacío que contendrá los modelos de la base de datos.
 
 let sequelize; // Declara la variable sequelize para usarla más adelante.
 if (config.use_env_variable) {
@@ -19,28 +18,23 @@ if (config.use_env_variable) {
   // Inicializa Sequelize con la configuración de la base de datos, nombre de usuario y contraseña.
 }
 
-fs
-  .readdirSync(__dirname) // Lee el contenido del directorio actual (donde están los modelos).
-  .filter(file => {
-    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js'); 
-    // Filtra los archivos para que solo se incluyan los archivos JavaScript que no empiezan con '.' y que no sean el archivo actual.
-  })
-  .forEach(file => {
-    // Para cada archivo de modelo:
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes); 
-    // Importa el archivo del modelo y lo inicializa con la instancia de Sequelize.
-    db[model.name] = model; // Añade el modelo al objeto 'db' usando el nombre del modelo como clave.
-  });
+const db = {
+  sequelize,
+  Sequelize
+};
 
-Object.keys(db).forEach(modelName => {
-  // Recorre las claves del objeto 'db' (que son los nombres de los modelos):
-  if (db[modelName].associate) {
-    // Si el modelo tiene una función 'associate' (para definir asociaciones entre modelos):
-    db[modelName].associate(db); // Llama a esa función para asociar los modelos.
-  }
+// Carga manual de modelos con inyección de Sequelize
+const modelFiles = [
+  'usuarios',
+  'usuariosApp', 
+  'notifications', 
+  'notification_recipients'
+];
+
+modelFiles.forEach(modelName => {
+  const modelModule = require(path.join(__dirname, `${modelName}.js`));
+  const model = modelModule(sequelize, Sequelize.DataTypes);
+  db[model.name] = model;
 });
 
-db.sequelize = sequelize; // Añade la instancia de Sequelize al objeto 'db'.
-db.Sequelize = Sequelize; // Añade el constructor de Sequelize al objeto 'db'.
-
-module.exports = db; // Exporta el objeto 'db' que ahora contiene todos los modelos y la instancia de Sequelize.
+module.exports = db;

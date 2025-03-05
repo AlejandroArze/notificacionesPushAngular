@@ -9,6 +9,7 @@ const idDTO = require("../http/request/user/idDTO") // DTO para validar los iden
 const loginDTO = require("../http/request/user/loginDTO"); // DTO para validar los datos del login
 const updateRoleDTO = require("../http/request/user/updateRoleDTO");
 const updateStatusDTO = require("../http/request/user/updateStatusDTO");
+const db = require('../models');
 
 
 class UserService {
@@ -104,21 +105,33 @@ class UserService {
     }
 
     // Método para mostrar un usuario por su ID
-    static async show(id) {
-
+    static async show(usuarios_id) {
         try {
-            // Valida el ID del usuario
-            await idDTO.validateAsync({ usuarios_id: id })
+            const user = await db.Usuarios.findByPk(usuarios_id, {
+                attributes: { 
+                    exclude: ['password'] 
+                }
+            });
 
-            // Busca el usuario por su ID (campo usuarios_id)
-            const user = await User.findByPk(id);
+            if (!user) {
+                throw new Error('Usuario no encontrado');
+            }
 
-            return user; // Retorna el usuario
-
+            // Devuelve exactamente los mismos campos que antes
+            return {
+                usuarios_id: user.usuarios_id,
+                nombres: user.nombres,
+                apellidos: user.apellidos,
+                usuario: user.usuario,
+                email: user.email,
+                role: user.role,
+                image: user.image,
+                estado: user.estado
+            };
         } catch (error) {
-            throw error; // Lanza el error para manejarlo
+            console.error('Error al obtener usuario:', error);
+            throw error;
         }
-
     }
 
     // Método para actualizar un usuario por su ID
