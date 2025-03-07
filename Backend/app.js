@@ -13,6 +13,7 @@ const qs = require('qs'); // Para serializar los datos
 const cron = require('node-cron');
 const { UsuariosApp, Usuarios } = require('./models'); // Importar ambos modelos
 const notificationRoutes = require('./router/notificationRoutes');
+const usuariosAppRoutes = require('./router/usuariosAppRoutes');
 // Crea una instancia de la aplicación Express
 const app = express();
 const request = require('request');
@@ -399,6 +400,7 @@ iniciarServidor();
 
 // Después de otras rutas, agrega:
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/usuarios-app', usuariosAppRoutes);
 
 // Agrega un middleware de error global para capturar rutas no encontradas
 app.use((req, res, next) => {

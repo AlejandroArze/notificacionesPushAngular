@@ -2,7 +2,7 @@
 
 const fs = require('fs'); // Importa el módulo 'fs' para trabajar con el sistema de archivos.
 const path = require('path'); // Importa el módulo 'path' para trabajar con rutas de archivos y directorios.
-const Sequelize = require('sequelize'); // Importa Sequelize, un ORM para interactuar con bases de datos.
+const { Sequelize } = require('sequelize'); // Importa Sequelize, un ORM para interactuar con bases de datos.
 const basename = path.basename(__filename); // Obtiene el nombre base del archivo actual.
 const env = process.env.NODE_ENV || 'development'; // Obtiene el entorno de ejecución (por ejemplo, 'development', 'production'), por defecto es 'development'.
 const config = require(__dirname + '/../config/config.js')[env]; // Carga la configuración de la base de datos correspondiente al entorno.
@@ -40,5 +40,23 @@ modelFiles.forEach(modelName => {
 // Asegúrate de que Usuarios esté disponible
 console.log('Modelos cargados:', Object.keys(db));
 console.log('Usuarios model:', db.Usuarios);
+
+// Definir asociaciones
+function setupAssociations() {
+    // Asociación entre Usuarios y UsuariosApp
+    db.Usuarios.hasOne(db.UsuariosApp, {
+        foreignKey: 'user_id', // Asegúrate de que este nombre de columna coincida con tu modelo
+        as: 'usuarioApp'
+    });
+
+    db.UsuariosApp.belongsTo(db.Usuarios, {
+        foreignKey: 'user_id',
+        as: 'usuario'
+    });
+
+    // Otras asociaciones si las tienes...
+}
+
+setupAssociations();
 
 module.exports = db;

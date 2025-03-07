@@ -1,11 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const usuariosAppController = require('../controllers/usuariosAppController');
+const UsuariosAppController = require('../controller/usuariosAppController');
+const authMiddleware = require('../middleware/authMiddleware');
 
-router.post('/', usuariosAppController.createUsuarioApp);
-router.get('/', usuariosAppController.getAllUsuariosApp);
-router.get('/:id', usuariosAppController.getUsuarioAppById);
-router.put('/:id', usuariosAppController.updateUsuarioApp);
-router.delete('/:id', usuariosAppController.deleteUsuarioApp);
+// Cambiar el orden de las rutas para evitar conflictos
+router.get('/buscar', authMiddleware, UsuariosAppController.buscarUsuarios);
+router.post('/', UsuariosAppController.createUsuarioApp);
+router.get('/', UsuariosAppController.getAllUsuariosApp);
+
+// Mover las rutas específicas con :id al final
+router.get('/:id', UsuariosAppController.getUsuarioAppById);
+router.put('/:id', UsuariosAppController.updateUsuarioApp);
+router.delete('/:id', UsuariosAppController.deleteUsuarioApp);
 
 module.exports = router; 

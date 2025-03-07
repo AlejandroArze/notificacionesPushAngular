@@ -3,13 +3,16 @@ const { DataTypes } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   const UsuariosApp = sequelize.define('UsuariosApp', {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
     },
     user_id: {
-      type: DataTypes.BIGINT,
-      allowNull: true
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'Usuarios',
+        key: 'usuarios_id'
+      }
     },
     tipodocumento_id: {
       type: DataTypes.BIGINT,
