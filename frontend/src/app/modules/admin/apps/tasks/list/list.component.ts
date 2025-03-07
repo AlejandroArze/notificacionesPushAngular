@@ -47,11 +47,12 @@ export const MY_DATE_FORMATS = {
     },
 };
 
-// Agregar una interfaz para usuarios
+// Modificar la interfaz de usuario
 interface UsuarioSeleccionable {
     id: number;
     nombre: string;
     carnet: string;
+    user_id?: number; // Añadir user_id
 }
 
 @Component({
@@ -223,6 +224,9 @@ export class TasksListComponent implements OnInit {
     usuarioBusquedaNombre: string = '';
     usuarioBusquedaCarnet: string = '';
 
+    // Propiedades para almacenar el usuario seleccionado
+    usuarioSeleccionado: UsuarioSeleccionable | null = null;
+
     // Nueva propiedad para el usuario que envía la notificación
     usuarioEnvio = {
         id: '',
@@ -366,6 +370,26 @@ export class TasksListComponent implements OnInit {
     }
 
     enviarNotificacion() {
+        // Verificar que se haya seleccionado un usuario
+        if (!this.usuarioSeleccionado) {
+            this._snackBar.open('Selecciona un usuario', 'Cerrar', { duration: 3000 });
+            return;
+        }
+
+        // Crear notificación con el ID del usuario
+        const notificacionPush = {
+            userId: this.usuarioSeleccionado.id, // Usar el ID del usuario seleccionado
+            title: this.notificacionForm.titulo || 'Notificación',
+            body: this.notificacionForm.mensaje || 'Sin mensaje',
+            data: {
+                tipo: 'mensaje',
+                accion: 'abrir_notificacion',
+                imagen: this.notificacionForm.imagen,
+                fechaCreacion: new Date().toISOString()
+            },
+            type: 'message'
+        };
+
         // Log adicional justo antes de enviar
         console.group('Enviando Notificación');
         console.log('Datos finales de notificación:', {
@@ -383,24 +407,6 @@ export class TasksListComponent implements OnInit {
             this._snackBar.open('Selecciona un destinatario', 'Cerrar', { duration: 3000 });
             return;
         }
-
-        // Por ahora, enviar siempre al usuario con ID 1
-        const destinatarioId = this.destinatariosPreview.length > 0 
-            ? Number(this.destinatariosPreview[0].id) 
-            : 1;
-
-        const notificacionPush = {
-            userId: destinatarioId,
-            title: this.notificacionForm.titulo || 'Notificación',
-            body: this.notificacionForm.mensaje || 'Sin mensaje',
-            data: {
-                tipo: 'mensaje',
-                accion: 'abrir_notificacion',
-                imagen: this.notificacionForm.imagen,
-                fechaCreacion: new Date().toISOString()
-            },
-            type: 'message'
-        };
 
         // Enviar notificación push
         this._tasksService.enviarNotificacionPush(notificacionPush)
@@ -686,34 +692,67 @@ export class TasksListComponent implements OnInit {
         this.notificacionForm.horaProgramada = hora;
     }
 
-    // Método para filtrar usuarios por nombre
+    // Métodos de búsqueda y selección
     filtrarUsuariosPorNombre(termino: string) {
         if (!termino) {
             this.usuariosFiltradosPorNombre = [];
             return;
         }
         
-        this._tasksService.buscarUsuariosPorNombre(termino)
-            .subscribe(usuarios => {
-                this.usuariosFiltradosPorNombre = usuarios;
+        // Llamar a la API de búsqueda con parámetro de nombre
+        this._tasksService.buscarUsuarios({ nombres: termino })
+            .subscribe({
+                next: (respuesta) => {
+                    // Mapear la respuesta de la API a UsuarioSeleccionable
+                    this.usuariosFiltradosPorNombre = respuesta.data.map(usuario => ({
+                        id: usuario.id,
+                        nombre: `${usuario.nombres} ${usuario.paterno} ${usuario.materno}`.trim(),
+                        carnet: usuario.nro_documento, // Usar número de documento como carnet
+                        user_id: usuario.user_id
+                    }));
+                },
+                error: (error) => {
+                    console.error('Error al buscar usuarios por nombre', error);
+                    this._snackBar.open('Error al buscar usuarios', 'Cerrar', { duration: 3000 });
+                }
             });
     }
 
-    // Método para filtrar usuarios por carnet
     filtrarUsuariosPorCarnet(termino: string) {
         if (!termino) {
             this.usuariosFiltradosPorCarnet = [];
             return;
         }
         
-        this._tasksService.buscarUsuariosPorCarnet(termino)
-            .subscribe(usuarios => {
-                this.usuariosFiltradosPorCarnet = usuarios;
+        // Llamar a la API de búsqueda con parámetro de número de documento
+        this._tasksService.buscarUsuarios({ nro_documento: termino })
+            .subscribe({
+                next: (respuesta) => {
+                    // Mapear la respuesta de la API a UsuarioSeleccionable
+                    this.usuariosFiltradosPorCarnet = respuesta.data.map(usuario => ({
+                        id: usuario.id,
+                        nombre: `${usuario.nombres} ${usuario.paterno} ${usuario.materno}`.trim(),
+                        carnet: usuario.nro_documento,
+                        user_id: usuario.user_id
+                    }));
+                },
+                error: (error) => {
+                    console.error('Error al buscar usuarios por carnet', error);
+                    this._snackBar.open('Error al buscar usuarios', 'Cerrar', { duration: 3000 });
+                }
             });
     }
 
     // Método para seleccionar usuario
     seleccionarUsuario(usuario: UsuarioSeleccionable) {
+        // Actualizar ambos campos de búsqueda
+        this.usuarioBusquedaNombre = usuario.nombre;
+        this.usuarioBusquedaCarnet = usuario.carnet;
+
+        // Almacenar usuario seleccionado
+        this.usuarioSeleccionado = usuario;
+
+        // Actualizar lista de destinatarios
         this.destinatariosPreview = [{
             id: Number(usuario.id),
             nombre: usuario.nombre,
@@ -721,9 +760,9 @@ export class TasksListComponent implements OnInit {
             unidad: 'General'
         }];
 
-        // Actualizar campos de búsqueda
-        this.usuarioBusquedaNombre = usuario.nombre;
-        this.usuarioBusquedaCarnet = usuario.carnet;
+        // Limpiar listas de filtrados
+        this.usuariosFiltradosPorNombre = [];
+        this.usuariosFiltradosPorCarnet = [];
     }
 
     // Método para manejar cambios en el campo de nombre

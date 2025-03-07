@@ -1394,4 +1394,19 @@ export class TasksService
         enlace.click();
         document.body.removeChild(enlace);
     }
+
+    // Método para buscar usuarios
+    buscarUsuarios(filtros: any): Observable<any> {
+        // Construir parámetros de consulta
+        const params = new HttpParams({ 
+            fromObject: Object.entries(filtros)
+                .reduce((acc, [key, value]) => {
+                    // Convertir valores a cadena
+                    acc[key] = value ? String(value) : '';
+                    return acc;
+                }, {}) 
+        });
+
+        return this._httpClient.get<any>(`${this.baseUrl}/usuarios-app/buscar`, { params });
+    }
 }
