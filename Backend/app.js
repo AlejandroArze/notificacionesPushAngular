@@ -349,38 +349,49 @@ async function testDatabaseConnection() {
     }
 }
 
-// Iniciar el servidor solo si la conexión es exitosa
-async function startServer() {
-    console.log('🚀 Iniciando servidor...');
-    
-    // Intentar conectar a la base de datos
-    const isConnected = await testDatabaseConnection();
-    
-    if (!isConnected) {
-        console.error('🛑 No se pudo establecer conexión con la base de datos. Deteniendo el servidor.');
-        process.exit(1);
-    }
-
-    // Sincronizar modelos
+// Ejecutar sincronización al iniciar el servidor
+async function iniciarSincronizacionInicial() {
     try {
-        await sequelize.sync({ force: false });
-        console.log('📚 Modelos sincronizados correctamente');
+        console.log('🚀 Iniciando sincronización inicial de usuarios...');
+        await sincronizarUsuarios();
+        console.log('✅ Sincronización inicial completada');
     } catch (error) {
-        console.error('❌ Error al sincronizar modelos:', error);
-        process.exit(1);
+        console.error('❌ Error en sincronización inicial:', error);
     }
-
-    // Iniciar el servidor
-    app.listen(port, '0.0.0.0', () => {
-        console.log(`🌐 Servidor corriendo en el puerto ${port}`);
-    });
 }
 
-// Iniciar el servidor
-startServer().catch(error => {
-    console.error('❌ Error fatal al iniciar el servidor:', error);
-    process.exit(1);
-});
+// Modificar la parte de inicio del servidor
+async function iniciarServidor() {
+    try {
+        // Probar conexión a la base de datos
+        const conexionExitosa = await testDatabaseConnection();
+        
+        if (conexionExitosa) {
+            // Sincronización inicial
+            await iniciarSincronizacionInicial();
+
+            // Programar sincronización cada 10 minutos
+            cron.schedule('*/10 * * * *', () => {
+                console.log('⏰ Iniciando sincronización programada de usuarios...');
+                sincronizarUsuarios();
+            });
+
+            // Iniciar servidor
+            app.listen(port,'0.0.0.0', () => {
+                console.log(`🌐 Servidor corriendo en puerto ${port}`);
+            });
+        } else {
+            console.error('❌ No se pudo iniciar el servidor debido a problemas de conexión');
+            process.exit(1);
+        }
+    } catch (error) {
+        console.error('❌ Error al iniciar el servidor:', error);
+        process.exit(1);
+    }
+}
+
+// Llamar a la función para iniciar el servidor
+iniciarServidor();
 
 // Exporta la aplicación para que otros archivos puedan usarla
 module.exports = app;
