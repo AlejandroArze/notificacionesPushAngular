@@ -12,6 +12,7 @@ const upload = multer();
 const qs = require('qs'); // Para serializar los datos
 const cron = require('node-cron');
 const { UsuariosApp, Usuarios } = require('./models'); // Importar ambos modelos
+const notificationRoutes = require('./router/notificationRoutes');
 // Crea una instancia de la aplicación Express
 const app = express();
 const request = require('request');
@@ -22,7 +23,10 @@ app.use(cors()); // Configuración CORS, puedes personalizarlo según los oríge
 app.use(express.urlencoded({ extended: true })); // Si necesitas leer datos del body en POST
 app.use("/api/v1/uploads", express.static(path.join(__dirname, "uploads")));
 
-
+// Antes de definir las rutas, agrega logging detallado
+app.use(morgan('combined')); // Logging de solicitudes HTTP
+app.use(express.json()); // Importante para parsear JSON
+app.use(express.urlencoded({ extended: true })); // Para parsear datos de formularios
 
 // Obtén el puerto de la variable de entorno o usa 3001 por defecto
 const port = process.env.APP_PORT || 3001;
@@ -392,6 +396,37 @@ async function iniciarServidor() {
 
 // Llamar a la función para iniciar el servidor
 iniciarServidor();
+
+// Después de otras rutas, agrega:
+app.use('/api/notifications', notificationRoutes);
+
+// Agrega un middleware de error global para capturar rutas no encontradas
+app.use((req, res, next) => {
+    console.error(`🚨 Ruta no encontrada: ${req.method} ${req.originalUrl}`);
+    console.error('Headers recibidos:', req.headers);
+    console.error('Cuerpo de la solicitud:', req.body);
+    
+    res.status(404).json({
+        success: false,
+        error: {
+            message: 'Ruta no encontrada',
+            path: req.originalUrl,
+            method: req.method
+        }
+    });
+});
+
+// Middleware de manejo de errores
+app.use((err, req, res, next) => {
+    console.error('Error del servidor:', err);
+    res.status(500).json({
+        success: false,
+        error: {
+            message: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        }
+    });
+});
 
 // Exporta la aplicación para que otros archivos puedan usarla
 module.exports = app;
