@@ -10,6 +10,8 @@ const path = require("path");
 const multer = require('multer');
 const upload = multer();
 const qs = require('qs'); // Para serializar los datos
+const cron = require('node-cron');
+const { UsuariosApp, Usuarios } = require('./models'); // Importar ambos modelos
 // Crea una instancia de la aplicación Express
 const app = express();
 const request = require('request');
@@ -130,6 +132,191 @@ app.get('/api/bienes', async (req, res) => {
     }
   });
   
+
+// Función para sincronizar usuarios
+async function sincronizarUsuarios() {
+    try {
+        console.log('🔄 Iniciando sincronización de usuarios...');
+
+        const response = await axios.post('https://multiservdev.cochabamba.bo/api/v1/innova/getNotifications', {
+            token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiYjFlY2ZkMzMzODM4NWZiMjc3NmE5Nzc1MmQ0NzkzZWY1MmNhZTU3NmMxNzIyNjI3NmIwOTg5NzQ2MDAwYWE0MDdmZGUzNjFlYThjMTZkYTMiLCJpYXQiOjE3NDA1ODIyNDguMTI5Mjc4LCJuYmYiOjE3NDA1ODIyNDguMTI5MjgsImV4cCI6MTc3MjExODI0OC4wNDQ5NTIsInN1YiI6IjEiLCJzY29wZXMiOltdfQ.LOEqQ48iw82mGk61kN4KbJCXG48XlwasAJlMwWGQBM3OnQsGz9jzFTTHl_i_Jo8DKu-j4aUSnEY8yap_12iCmIjj24rGsEk75FiWvLSRFO0gg_UzzHcj1dskaY0jf4TNyw67MT7LX72Rze_T19oh2qtNQNNq4srTBBhyJRpc_6yMY6pWo3-TVziF99Azir7UZgtG9EXH_6wmVabmEZ3vJdRoaT6UTE3-T3Smfo_YkMfw5FG2KZ1zDarxEYpCTCZDPRxMyx5cAsy6VDZiePSIv5-kdmWUOyms0Vv82uUsfjEOSz_gvBexPmnvhwqF5tdGyw_HIrgXPyPTHn0OHI-Q0wjJniB36gRRgz1SP0PEVSGF9DdiHVpSlLnBaVbGWZLqcGjVkoW3yxoSkf7kR0r42EgTwqM1PlOCFtksjj9-IZWCJJY-HmavdcmiLoWk0n0V-7YIPi_mv8I4bbLkwxU0MlQlkeTLUQjaE3Yeso67NvA8P-HGAYtSPX5ODr1JbOoBc6u_BiN8UdHSQV-wBen1Tvw_9cFF0KQyl64BzXGnYHYc0f0Q1fguq_Pn4IH-IXax61ZzWEL-cW80PwSoh7q4ux91cXe-E3eD-ckvqYProa-e-hrO8Z21UZ2kUxSZv59aI9UH_zAHyZyK0k8IgK7p3US7oZ80Kek84T3-86-C_1I"
+        });
+
+        const usuarios = response.data.data;
+
+        const mapeoGenero = {
+            'MASCULINO': 'masculino',
+            'FEMENINO': 'femenino',
+            'NINGUNO': 'masculino',
+            'masculino': 'masculino',
+            'femenino': 'femenino'
+        };
+
+        const mapeoEstadoCivil = {
+            'SOLTERO(A)': 'soltero',
+            'CASADO(A)': 'casado',
+            'DIVORCIADO(A)': 'divorciado',
+            'NINGUNO': 'soltero',
+            'soltero': 'soltero',
+            'casado': 'casado',
+            'divorciado': 'divorciado'
+        };
+
+        for (const usuario of usuarios) {
+            console.log('Procesando usuario:', {
+                id: usuario.id,
+                nro_documento: usuario.nro_documento,
+                genero_original: usuario.genero,
+                estado_civil_original: usuario.estado_civil
+            });
+
+            const generoNormalizado = mapeoGenero[usuario.genero] || 'masculino';
+            const estadoCivilNormalizado = mapeoEstadoCivil[usuario.estado_civil] || 'soltero';
+
+            try {
+                // Función para parsear tokens de notificación de manera segura
+                const parseTokens = (tokens) => {
+                    try {
+                        // Si ya es un array, devolverlo
+                        if (Array.isArray(tokens)) return tokens;
+                        
+                        // Intentar parsear como JSON
+                        const parsedTokens = JSON.parse(tokens || '[]');
+                        return Array.isArray(parsedTokens) ? parsedTokens : [];
+                    } catch (error) {
+                        // Si falla, devolver un array vacío
+                        console.warn(`Error parseando tokens para ${usuario.nro_documento}:`, error.message);
+                        return [];
+                    }
+                };
+
+                // Preparar datos para comparación y actualización
+                const datosActualizacion = {
+                    ...usuario,
+                    genero: generoNormalizado,
+                    estado_civil: estadoCivilNormalizado,
+                    tokens_notificaciones: parseTokens(usuario.tokens_notificaciones)
+                };
+
+                // Buscar el usuario existente por ID
+                const usuarioExistente = await UsuariosApp.findOne({
+                    where: { id: usuario.id }
+                });
+
+                // Función para comparar si hay cambios
+                const hayCambios = (existente, nuevo) => {
+                    const cambios = {};
+                    let hayModificaciones = false;
+
+                    // Lista de campos a comparar (todos los campos relevantes)
+                    const camposAComparar = [
+                        'nombres', 'paterno', 'materno', 'tercer_apellido', 
+                        'avatar', 'ci_anverso', 'ci_reverso', 'fecha_nacimiento', 
+                        'genero', 'estado_civil', 'celular', 'telefono', 
+                        'municipio', 'latitud', 'longitud', 'subalcaldia', 
+                        'distrito', 'subdistrito', 'zona', 'tipo_lugar', 
+                        'domicilio', 'referencia_adicional', 'nro_puerta', 
+                        'estado', 'tokens_notificaciones', 'tipodocumento_id', 
+                        'fecha_caducidad_ci', 'expedido_id', 'id_google', 
+                        'nro_documento', 'user_id'
+                    ];
+
+                    camposAComparar.forEach(campo => {
+                        // Comparación especial para tokens_notificaciones
+                        if (campo === 'tokens_notificaciones') {
+                            const tokensExistentes = parseTokens(existente.tokens_notificaciones);
+                            const tokensNuevos = nuevo.tokens_notificaciones;
+                            const sonIguales = JSON.stringify(tokensExistentes) === JSON.stringify(tokensNuevos);
+                            
+                            if (!sonIguales) {
+                                cambios[campo] = {
+                                    anterior: tokensExistentes,
+                                    nuevo: tokensNuevos
+                                };
+                                hayModificaciones = true;
+                            }
+                        } 
+                        // Comparación para otros campos
+                        else if (existente[campo] !== nuevo[campo]) {
+                            cambios[campo] = {
+                                anterior: existente[campo],
+                                nuevo: nuevo[campo]
+                            };
+                            hayModificaciones = true;
+                        }
+                    });
+
+                    return {
+                        hayModificaciones,
+                        cambios
+                    };
+                };
+
+                if (usuarioExistente) {
+                    // Verificar si hay cambios
+                    const { hayModificaciones, cambios } = hayCambios(usuarioExistente, datosActualizacion);
+                    
+                    if (hayModificaciones) {
+                        await usuarioExistente.update(datosActualizacion);
+                        console.log(`🔄 UsuariosApp ${usuario.nro_documento} actualizado`, {
+                            id: usuarioExistente.id,
+                            cambios: cambios
+                        });
+                    } else {
+                        console.log(`✅ UsuariosApp ${usuario.nro_documento} sin cambios`);
+                    }
+                } else {
+                    // Crear nuevo usuario si no existe
+                    try {
+                        const nuevoUsuario = await UsuariosApp.create(datosActualizacion);
+                        console.log(`➕ UsuariosApp ${usuario.nro_documento} creado`, {
+                            id: nuevoUsuario.id
+                        });
+                    } catch (createError) {
+                        console.error(`❌ Error al crear usuario ${usuario.nro_documento}:`, {
+                            error: createError.message,
+                            datos: datosActualizacion
+                        });
+                    }
+                }
+
+            } catch (innerError) {
+                console.error('Error al sincronizar usuario en UsuariosApp:', {
+                    id: usuario.id,
+                    nro_documento: usuario.nro_documento,
+                    error: innerError.message,
+                    stack: innerError.stack,
+                    datosUsuario: usuario
+                });
+            }
+        }
+
+        console.log('✅ Sincronización de usuarios completada');
+    } catch (error) {
+        console.error('❌ Error en sincronización de usuarios:', error);
+    }
+}
+
+// Agregar ruta para solicitar sincronización manual
+app.post('/api/v1/sync-usuarios', async (req, res) => {
+    try {
+        await sincronizarUsuarios();
+        res.json({ 
+            status: 'success', 
+            message: 'Sincronización de usuarios iniciada' 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            status: 'error', 
+            message: 'Error en sincronización de usuarios' 
+        });
+    }
+});
+
+// Programar sincronización cada 10 minutos
+cron.schedule('*/10 * * * *', () => {
+    sincronizarUsuarios();
+});
 
 // Función para probar la conexión
 async function testDatabaseConnection() {
