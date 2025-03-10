@@ -314,53 +314,82 @@ export class TasksListComponent implements OnInit {
     }
 
     validarYEnviarNotificacion(contrasena: string) {
-        // Verificar que se haya seleccionado un usuario
-        if (!this.usuarioSeleccionado) {
-            this._snackBar.open('Selecciona un usuario', 'Cerrar', { duration: 3000 });
-            return;
-        }
-
         // Verificar que los campos de notificación estén completos
         if (!this.notificacionForm.titulo || !this.notificacionForm.mensaje) {
             this._snackBar.open('Completa el título y el mensaje', 'Cerrar', { duration: 3000 });
             return;
         }
 
-        // Crear notificación con el ID del usuario seleccionado
-        const notificacionPush = {
-            userId: this.usuarioSeleccionado.id, // Usar el ID del usuario seleccionado
-            title: this.notificacionForm.titulo || 'Notificación',
-            body: this.notificacionForm.mensaje || 'Sin mensaje',
+        // Preparar payload base
+        const payloadBase = {
+            title: this.notificacionForm.titulo,
+            body: this.notificacionForm.mensaje,
             data: {
                 tipo: 'mensaje',
                 accion: 'abrir_notificacion'
-            },
-            type: 'message'
+            }
         };
 
-        // Log adicional justo antes de enviar
-        console.group('Enviando Notificación');
-        console.log('Datos de notificación:', notificacionPush);
-        console.groupEnd();
+        // Determinar el método de envío según el tipo de envío
+        if (this.tipoEnvio === 'todos') {
+            // Envío a todos los usuarios
+            const payloadBroadcast = {
+                ...payloadBase,
+                type: 'announcement'
+            };
 
-        // Enviar notificación push
-        this._tasksService.enviarNotificacionPush(notificacionPush)
-            .subscribe({
-                next: (respuesta) => {
-                    console.log('Notificación enviada:', respuesta);
-                    this._snackBar.open('Notificación enviada exitosamente', 'Cerrar', { duration: 3000 });
-                    
-                    // Guardar en historial de notificaciones
-                    this.guardarHistorialNotificacion(respuesta?.data?.notification || respuesta);
-                    
-                    // Limpiar formulario
-                    this.cancelarNotificacion();
-                },
-                error: (error) => {
-                    console.error('Error al enviar notificación:', error);
-                    this._snackBar.open('Error al enviar notificación', 'Cerrar', { duration: 3000 });
-                }
-            });
+            this._tasksService.enviarNotificacionBroadcast(payloadBroadcast)
+                .subscribe({
+                    next: (respuesta) => {
+                        console.log('Notificación broadcast enviada:', respuesta);
+                        this._snackBar.open('Notificación global enviada exitosamente', 'Cerrar', { duration: 3000 });
+                        
+                        // Guardar en historial de notificaciones
+                        this.guardarHistorialNotificacion(respuesta?.data?.notification || respuesta);
+                        
+                        // Limpiar formulario
+                        this.cancelarNotificacion();
+                    },
+                    error: (error) => {
+                        console.error('Error al enviar notificación global:', error);
+                        this._snackBar.open('Error al enviar notificación global', 'Cerrar', { duration: 3000 });
+                    }
+                });
+        } else if (this.tipoEnvio === 'individual') {
+            // Verificar que se haya seleccionado un usuario
+            if (!this.usuarioSeleccionado) {
+                this._snackBar.open('Selecciona un usuario', 'Cerrar', { duration: 3000 });
+                return;
+            }
+
+            // Envío a usuario individual
+            const payloadIndividual = {
+                ...payloadBase,
+                userId: this.usuarioSeleccionado.id,
+                type: 'message'
+            };
+
+            this._tasksService.enviarNotificacionPush(payloadIndividual)
+                .subscribe({
+                    next: (respuesta) => {
+                        console.log('Notificación individual enviada:', respuesta);
+                        this._snackBar.open('Notificación enviada exitosamente', 'Cerrar', { duration: 3000 });
+                        
+                        // Guardar en historial de notificaciones
+                        this.guardarHistorialNotificacion(respuesta?.data?.notification || respuesta);
+                        
+                        // Limpiar formulario
+                        this.cancelarNotificacion();
+                    },
+                    error: (error) => {
+                        console.error('Error al enviar notificación individual:', error);
+                        this._snackBar.open('Error al enviar notificación', 'Cerrar', { duration: 3000 });
+                    }
+                });
+        } else {
+            // Tipo de envío no soportado
+            this._snackBar.open('Selecciona un tipo de envío válido', 'Cerrar', { duration: 3000 });
+        }
     }
 
     // Método de guardado de historial más robusto

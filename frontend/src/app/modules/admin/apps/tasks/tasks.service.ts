@@ -1376,4 +1376,66 @@ export class TasksService
 
         return this._httpClient.get<any>(`${this.baseUrl}/usuarios-app/buscar`, { params });
     }
+
+    // Método para enviar notificación broadcast
+    enviarNotificacionBroadcast(notificacion: {
+        title: string;
+        body: string;
+        data?: {
+            tipo: string;
+            accion: string;
+        };
+        type?: string;
+    }): Observable<any> {
+        const endpoint = `http://localhost:3002/api/notifications/broadcast`;
+
+        // Obtener token de autenticación
+        const token = localStorage.getItem('token') || '';
+
+        const headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        });
+
+        // Preparar payload
+        const payload = {
+            title: notificacion.title,
+            body: notificacion.body,
+            data: notificacion.data || {
+                tipo: 'anuncio',
+                accion: 'abrir_anuncios'
+            },
+            type: notificacion.type || 'announcement'
+        };
+
+        // Log detallado de la solicitud
+        console.group('📨 Detalles de Envío de Notificación Broadcast');
+        console.log('🌐 Endpoint:', endpoint);
+        console.log('📦 Payload:', JSON.stringify(payload, null, 2));
+        console.groupEnd();
+
+        return this._httpClient.post(endpoint, payload, { 
+            headers,
+            observe: 'response',
+            responseType: 'json'
+        }).pipe(
+            map(response => {
+                console.group('✅ Respuesta de Notificación Broadcast');
+                console.log('📊 Código de estado:', response.status);
+                console.log('📨 Respuesta completa:', response.body);
+                console.groupEnd();
+                return response.body;
+            }),
+            catchError(error => {
+                console.group('❌ Error de Notificación Broadcast');
+                console.error('Detalles del error:', error);
+                console.groupEnd();
+
+                // Mostrar mensaje de error al usuario
+                this._snackBar.open('Error al enviar notificación global', 'Cerrar', { duration: 3000 });
+
+                return throwError(() => error);
+            })
+        );
+    }
 }
