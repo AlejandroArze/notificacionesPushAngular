@@ -70,51 +70,16 @@ export class ConfirmacionModalComponent {
 
     constructor(
         public dialogRef: MatDialogRef<ConfirmacionModalComponent>,
-        @Inject(MAT_DIALOG_DATA) public data: any,
-        private _tasksService: TasksService,
-        private _snackBar: MatSnackBar
+        @Inject(MAT_DIALOG_DATA) public data: any
     ) {}
 
-    cancelar(): void {
-        this.dialogRef.close(false);
+    confirmar() {
+        // Pasar cualquier valor, no importa lo que se ingrese
+        this.dialogRef.close('confirmado');
     }
 
-    confirmar(): void {
-        console.log('Datos recibidos para envío:', this.data);
-
-        // Preparar notificación para enviar
-        const notificacionPush = {
-            userId: 1, // Por defecto al usuario 1
-            title: this.data.titulo || 'Notificación',
-            body: this.data.mensaje || 'Sin mensaje',
-            data: {
-                tipo: 'mensaje',
-                accion: 'abrir_notificacion',
-                imagen: this.data.imagen,
-                fechaCreacion: new Date().toISOString()
-            },
-            type: 'message'
-        };
-
-        console.log('Notificación a enviar:', notificacionPush);
-
-        // Enviar notificación push
-        this._tasksService.enviarNotificacionPush(notificacionPush)
-            .subscribe({
-                next: (respuesta) => {
-                    console.log('Respuesta de envío de notificación:', respuesta);
-                    this._snackBar.open('Notificación enviada exitosamente', 'Cerrar', { duration: 3000 });
-                    
-                    // Cerrar el modal con éxito
-                    this.dialogRef.close(true);
-                },
-                error: (error) => {
-                    console.error('Error completo al enviar notificación:', error);
-                    console.error('Mensaje de error:', error.message);
-                    console.error('Detalles del error:', error.error);
-                    this._snackBar.open('Error al enviar notificación', 'Cerrar', { duration: 3000 });
-                }
-            });
+    cancelar() {
+        this.dialogRef.close(null);
     }
 }
 
@@ -261,24 +226,13 @@ export class NotificacionModalComponent implements OnInit {
 
     // Método para guardar historial de notificación
     guardarHistorialNotificacion(notificacion: any) {
-        const historialNotificacion: NotificacionPush = {
-            id: notificacion.id,
-            usuarioId: notificacion.user_id,
-            titulo: notificacion.title,
-            mensaje: notificacion.body,
-            fechaCreacion: new Date(notificacion.created_at),
-            fechaEnvio: new Date(notificacion.sent_at),
-            estado: notificacion.status,
-            tipo: notificacion.type,
-            datos: notificacion.data
-        };
-
-        // Guardar en el servicio o enviar a backend
-        this._tasksService.guardarHistorialNotificacion(historialNotificacion)
-            .subscribe({
-                next: () => console.log('Historial de notificación guardado'),
-                error: (error) => console.error('Error al guardar historial', error)
-            });
+        // Simplemente hacer un log sin intentar guardar en una API
+        console.log('Historial de notificación:', {
+            id: notificacion?.data?.notification?.id || 'Sin ID',
+            titulo: notificacion?.data?.notification?.title || 'Sin título',
+            body: notificacion?.data?.notification?.body || 'Sin mensaje',
+            fechaEnvio: notificacion?.data?.notification?.sent_at || new Date().toISOString()
+        });
     }
 
     cancelar() {

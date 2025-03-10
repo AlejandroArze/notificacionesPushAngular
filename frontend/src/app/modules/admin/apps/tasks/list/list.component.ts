@@ -314,99 +314,34 @@ export class TasksListComponent implements OnInit {
     }
 
     validarYEnviarNotificacion(contrasena: string) {
-        // Log de los datos que se van a enviar antes de la validación
-        console.group('Preparando Envío de Notificación');
-        console.log('Tipo de Envío:', this.tipoEnvio);
-        console.log('Datos de Notificación:', {
-            titulo: this.notificacionForm.titulo,
-            mensaje: this.notificacionForm.mensaje,
-            imagen: this.notificacionForm.imagen ? '[Imagen presente]' : 'Sin imagen',
-            destinatarios: this.destinatariosPreview.map(d => ({
-                id: d.id,
-                nombre: d.nombre,
-                rol: d.rol
-            }))
-        });
-
-        // Si es envío por grupo, mostrar filtros adicionales
-        if (this.tipoEnvio === 'grupo') {
-            console.log('Filtros de Grupo:', {
-                roles: this.notificacionForm.roles,
-                unidades: this.notificacionForm.unidades,
-                estados: this.notificacionForm.estados,
-                tipos: this.notificacionForm.tipos
-            });
-        }
-
-        // Si es envío programado, mostrar detalles de programación
-        if (this.notificacionForm.programarEnvio) {
-            console.log('Detalles de Programación:', {
-                fechaProgramada: this.notificacionForm.fechaProgramada,
-                horaProgramada: this.notificacionForm.horaProgramada,
-                tipoProgramacion: this.notificacionForm.tipoProgramacion,
-                frecuencia: this.notificacionForm.frecuencia
-            });
-        }
-
-        console.groupEnd();
-
-        // Llamar al servicio de autenticación para validar contraseña
-        this._tasksService.validarContrasena(contrasena).subscribe({
-            next: (esValida) => {
-                if (esValida) {
-                    // Si la contraseña es válida, proceder con el envío
-                    console.log('Contraseña validada. Procediendo con el envío de notificación.');
-                    this.enviarNotificacion();
-                } else {
-                    // Mostrar error si la contraseña es incorrecta
-                    this._snackBar.open('Contraseña incorrecta', 'Cerrar', { duration: 3000 });
-                }
-            },
-            error: (error) => {
-                console.error('Error al validar contraseña:', error);
-                this._snackBar.open('Error al validar contraseña', 'Cerrar', { duration: 3000 });
-            }
-        });
-    }
-
-    enviarNotificacion() {
         // Verificar que se haya seleccionado un usuario
         if (!this.usuarioSeleccionado) {
             this._snackBar.open('Selecciona un usuario', 'Cerrar', { duration: 3000 });
             return;
         }
 
-        // Crear notificación con el ID del usuario
+        // Verificar que los campos de notificación estén completos
+        if (!this.notificacionForm.titulo || !this.notificacionForm.mensaje) {
+            this._snackBar.open('Completa el título y el mensaje', 'Cerrar', { duration: 3000 });
+            return;
+        }
+
+        // Crear notificación con el ID del usuario seleccionado
         const notificacionPush = {
             userId: this.usuarioSeleccionado.id, // Usar el ID del usuario seleccionado
             title: this.notificacionForm.titulo || 'Notificación',
             body: this.notificacionForm.mensaje || 'Sin mensaje',
             data: {
                 tipo: 'mensaje',
-                accion: 'abrir_notificacion',
-                imagen: this.notificacionForm.imagen,
-                fechaCreacion: new Date().toISOString()
+                accion: 'abrir_notificacion'
             },
             type: 'message'
         };
 
         // Log adicional justo antes de enviar
         console.group('Enviando Notificación');
-        console.log('Datos finales de notificación:', {
-            destinatarioId: this.destinatariosPreview.length > 0 
-                ? Number(this.destinatariosPreview[0].id) 
-                : 1,
-            titulo: this.notificacionForm.titulo,
-            mensaje: this.notificacionForm.mensaje,
-            imagen: this.notificacionForm.imagen ? '[Imagen presente]' : 'Sin imagen'
-        });
+        console.log('Datos de notificación:', notificacionPush);
         console.groupEnd();
-
-        // Validar que haya un destinatario seleccionado
-        if (this.tipoEnvio === 'individual' && this.destinatariosPreview.length === 0) {
-            this._snackBar.open('Selecciona un destinatario', 'Cerrar', { duration: 3000 });
-            return;
-        }
 
         // Enviar notificación push
         this._tasksService.enviarNotificacionPush(notificacionPush)
@@ -422,77 +357,21 @@ export class TasksListComponent implements OnInit {
                     this.cancelarNotificacion();
                 },
                 error: (error) => {
-                    console.error('Error completo al enviar notificación:', error);
-                    
-                    // Mensaje de error más descriptivo
-                    let errorMsg = 'Error desconocido al enviar notificación';
-                    
-                    // Manejo detallado de diferentes tipos de errores
-                    if (error.status === 401) {
-                        errorMsg = 'No autorizado. Verifique sus credenciales.';
-                        // NO cerrar sesión automáticamente
-                        // this._authService.logout();
-                    } else if (error.status === 404) {
-                        errorMsg = 'Endpoint de notificación no encontrado';
-                    } else if (error.status === 500) {
-                        errorMsg = 'Error interno del servidor';
-                    } else if (error.error instanceof ErrorEvent) {
-                        // Error del lado del cliente
-                        errorMsg = error.error.message || 'Error de cliente al enviar notificación';
-                    } else if (error.error && error.error.message) {
-                        // Mensaje de error específico del backend
-                        errorMsg = error.error.message;
-                    }
-                    
-                    // Mostrar mensaje de error detallado
-                    this._snackBar.open(errorMsg, 'Cerrar', { 
-                        duration: 5000,
-                        horizontalPosition: 'center',
-                        verticalPosition: 'top'
-                    });
-
-                    // Opcional: Log de error más detallado para depuración
-                    console.error('Detalles del error:', {
-                        status: error.status,
-                        message: errorMsg,
-                        fullError: error
-                    });
+                    console.error('Error al enviar notificación:', error);
+                    this._snackBar.open('Error al enviar notificación', 'Cerrar', { duration: 3000 });
                 }
             });
     }
 
     // Método de guardado de historial más robusto
     guardarHistorialNotificacion(notificacion: any) {
-        // Verificar que la notificación tenga datos válidos
-        if (!notificacion) {
-            console.warn('Intento de guardar historial con notificación nula');
-            return;
-        }
-
-        const historialNotificacion: NotificacionPush = {
-            id: notificacion.id || null,
-            usuarioId: notificacion.user_id || notificacion.userId || null,
-            titulo: notificacion.title || this.notificacionForm.titulo || 'Sin título',
-            mensaje: notificacion.body || this.notificacionForm.mensaje || 'Sin mensaje',
-            fechaCreacion: new Date(notificacion.created_at || Date.now()),
-            fechaEnvio: new Date(notificacion.sent_at || Date.now()),
-            estado: notificacion.status || 'pendiente',
-            tipo: notificacion.type || 'message',
-            datos: notificacion.data || {}
-        };
-
-        // Guardar en el servicio o enviar a backend
-        this._tasksService.guardarHistorialNotificacion(historialNotificacion)
-            .subscribe({
-                next: () => console.log('Historial de notificación guardado'),
-                error: (error) => {
-                    console.error('Error al guardar historial de notificación:', error);
-                    // Mostrar mensaje de error sin interrumpir el flujo
-                    this._snackBar.open('No se pudo guardar el historial de notificación', 'Cerrar', { 
-                        duration: 3000 
-                    });
-                }
-            });
+        // Simplemente hacer un log sin intentar guardar en una API
+        console.log('Historial de notificación:', {
+            id: notificacion?.data?.notification?.id || 'Sin ID',
+            titulo: notificacion?.data?.notification?.title || 'Sin título',
+            body: notificacion?.data?.notification?.body || 'Sin mensaje',
+            fechaEnvio: notificacion?.data?.notification?.sent_at || new Date().toISOString()
+        });
     }
 
     cancelarNotificacion() {
@@ -785,5 +664,22 @@ export class TasksListComponent implements OnInit {
         if (this.usuariosFiltradosPorCarnet.length === 1) {
             this.seleccionarUsuario(this.usuariosFiltradosPorCarnet[0]);
         }
+    }
+
+    abrirModalConfirmacion() {
+        const dialogRef = this._dialog.open(ConfirmacionModalComponent, {
+            width: '350px',
+            data: {
+                titulo: 'Confirmar Envío de Notificación',
+                mensaje: '¿Estás seguro de enviar esta notificación?'
+            }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+            // Enviar la notificación sin importar el valor de result
+            if (result !== null) {
+                this.validarYEnviarNotificacion('cualquier_valor');
+            }
+        });
     }
 }

@@ -1032,7 +1032,7 @@ export class TasksService
         this._pagination.next(pagination);
     }
 
-    // Método para enviar notificación push usando la API específica
+    // Método para enviar notificación push
     enviarNotificacionPush(notificacion: {
         userId: number;
         title: string;
@@ -1043,44 +1043,38 @@ export class TasksService
         };
         type?: string;
     }): Observable<any> {
-        const endpoint = `http://localhost:3000/api/notifications/send`;
-        
-        // Token específico proporcionado
-        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMiLCJpYXQiOjE3NDExNTgxMTMsImV4cCI6MTc0MTI0NDUxM30.Re_ru_psaaifzA8_1VREhrBQJmbhMLQCvDj4v1yVpgI';
+        const endpoint = `http://localhost:3002/api/notifications/send`;
+
+        // Obtener token de autenticación (asegúrate de tener un método para obtener el token)
+        const token = localStorage.getItem('token') || '';
 
         const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         });
 
-        // Preparar payload exactamente como en Postman
+        // Preparar payload exactamente como en el ejemplo de Postman
         const payload = {
-            userId: 3,  // Sin conversión de tipo
+            userId: notificacion.userId,
             title: notificacion.title,
             body: notificacion.body,
-            data: {
+            data: notificacion.data || {
                 tipo: 'mensaje',
                 accion: 'abrir_chat'
             },
-            type: 'message'
+            type: notificacion.type || 'message'
         };
 
-        // Log detallado de toda la solicitud
-        console.group('Detalles Completos de Solicitud de Notificación');
-        console.log('📍 Endpoint:', endpoint);
-        console.log('🔑 Token completo:', token);
-        console.log('📦 Payload completo:', JSON.stringify(payload, null, 2));
-        console.log('🌐 Cabeceras:', Object.fromEntries(headers.keys().map(key => [key, headers.get(key)])));
+        // Log detallado de la solicitud
+        console.group('📨 Detalles de Envío de Notificación');
+        console.log('🌐 Endpoint:', endpoint);
+        console.log('📦 Payload:', JSON.stringify(payload, null, 2));
         console.groupEnd();
-
-        // Registro de log para depuración
-        this.registrarLogDetalladoSolicitud(endpoint, payload, token);
 
         return this._httpClient.post(endpoint, payload, { 
             headers,
             observe: 'response',
-            responseType: 'json',
-            withCredentials: false
+            responseType: 'json'
         }).pipe(
             map(response => {
                 console.group('✅ Respuesta de Notificación');
@@ -1091,43 +1085,15 @@ export class TasksService
             }),
             catchError(error => {
                 console.group('❌ Error de Notificación');
-                console.log('🔍 Tipo de error:', error.constructor.name);
-                console.log('🚨 Código de estado:', error.status);
-                console.log('📝 Mensaje de error:', error.message);
-                console.log('📋 Cuerpo del error:', error.error);
-                console.log('🌐 Detalles completos:', JSON.stringify(error, null, 2));
+                console.error('Detalles del error:', error);
                 console.groupEnd();
 
-                // Registrar error en archivo de log
-                this.registrarErrorLog(error, 'Envío de Notificación Push');
-                
-                // Descargar logs de error
-                this.descargarLogsComoArchivo();
+                // Mostrar mensaje de error al usuario
+                this._snackBar.open('Error al enviar notificación', 'Cerrar', { duration: 3000 });
 
                 return throwError(() => error);
             })
         );
-    }
-
-    // Método para registrar log detallado de la solicitud
-    private registrarLogDetalladoSolicitud(endpoint: string, payload: any, token: string) {
-        try {
-            const logSolicitud = {
-                timestamp: new Date().toISOString(),
-                endpoint,
-                payload,
-                tokenParcial: token.substring(0, 20) + '...' // Mostrar solo parte del token
-            };
-
-            // Guardar en localStorage
-            const logs = JSON.parse(localStorage.getItem('solicitud_logs') || '[]');
-            logs.push(logSolicitud);
-            localStorage.setItem('solicitud_logs', JSON.stringify(logs));
-
-            console.log('🗒️ Log de solicitud guardado:', logSolicitud);
-        } catch (error) {
-            console.error('Error al guardar log de solicitud:', error);
-        }
     }
 
     // Método para obtener un nuevo token
@@ -1344,9 +1310,10 @@ export class TasksService
         return this.obtenerUsuarios(carnet);
     }
 
-    guardarHistorialNotificacion(notificacion: NotificacionPush): Observable<any> {
-        return this._httpClient.post(`${this.baseUrl}/notificaciones/historial`, notificacion);
-    }
+    // Comentar o eliminar este método
+    // guardarHistorialNotificacion(notificacion: NotificacionPush): Observable<any> {
+    //     return this._httpClient.post(`${this.baseUrl}/notificaciones/historial`, notificacion);
+    // }
 
     private registrarErrorLog(error: any, contexto: string) {
         console.group('Error de Notificación');
