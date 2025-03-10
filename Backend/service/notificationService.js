@@ -1,4 +1,4 @@
-const admin = require('../config/firebase');
+const { admin, messaging } = require('../config/firebase');
 const { Notifications, NotificationRecipients, UsuariosApp } = require('../models');
 const { Op } = require('sequelize');
 
@@ -32,11 +32,11 @@ class NotificationService {
 
             // Crear registro de notificación
             const notification = await Notifications.create({
-                sender_id: payload.senderId,
+                sender_id: payload.senderId || 0,
                 title: payload.title,
                 body: payload.body,
                 data: payload.data,
-                type: payload.type,
+                type: payload.type || 'message',
                 status: 'sent',
                 sent_at: new Date()
             });
@@ -48,55 +48,57 @@ class NotificationService {
                 status: 'pending'
             });
 
-            // Enviar notificación por Firebase
-            const messages = validTokens.map(token => ({
-                token: token,
-                notification: {
-                    title: payload.title,
-                    body: payload.body
-                },
-                data: {
-                    ...payload.data,
-                    // Agregar metadatos adicionales si es necesario
-                    click_action: 'FLUTTER_NOTIFICATION_CLICK'
-                }
-            }));
+            // Enviar notificaciones en lotes
+            const sendResults = [];
 
-            // Enviar notificaciones y manejar errores
-            const sendResults = await Promise.allSettled(
-                messages.map(message => admin.messaging().send(message))
-            );
-
-            // Analizar resultados
-            const successfulSends = sendResults.filter(result => result.status === 'fulfilled');
-            const failedSends = sendResults.filter(result => result.status === 'rejected');
-
-            // Registrar y manejar tokens inválidos
-            const invalidTokens = failedSends.map(fail => {
-                console.error('Error enviando notificación:', fail.reason);
-                return fail.reason.errorInfo?.token;
-            }).filter(Boolean);
-
-            if (invalidTokens.length > 0) {
-                console.warn('Tokens inválidos detectados:', invalidTokens);
-                
-                // Eliminar tokens inválidos del registro de usuario
-                const updatedTokens = validTokens.filter(token => !invalidTokens.includes(token));
-                
-                await UsuariosApp.update(
-                    { 
-                        tokens_notificaciones: updatedTokens 
-                    },
-                    { where: { id: userId } }
+            try {
+                // Usar sendEachFor para tokens individuales
+                const batchPromises = validTokens.map(token => 
+                    messaging.send({ 
+                        token, 
+                        notification: {
+                            title: payload.title,
+                            body: payload.body
+                        },
+                        data: payload.data || {} 
+                    }).catch(error => {
+                        console.error(`Error enviando a token ${token}:`, error);
+                        return null;
+                    })
                 );
+
+                const batchResponses = await Promise.all(batchPromises);
+
+                const successCount = batchResponses.filter(response => response !== null).length;
+                const failureCount = batchResponses.filter(response => response === null).length;
+
+                sendResults.push({
+                    totalTokens: validTokens.length,
+                    successCount,
+                    failureCount
+                });
+            } catch (batchError) {
+                console.error(`Error en envío de notificación:`, batchError);
+                sendResults.push({
+                    totalTokens: validTokens.length,
+                    successCount: 0,
+                    failureCount: validTokens.length,
+                    error: batchError.message
+                });
             }
+
+            // Calcular estadísticas
+            const totalTokens = validTokens.length;
+            const successfulSends = sendResults.reduce((sum, result) => sum + result.successCount, 0);
+            const failedSends = sendResults.reduce((sum, result) => sum + result.failureCount, 0);
 
             return { 
                 notification, 
-                sent: successfulSends.length > 0,
-                totalTokens: validTokens.length,
-                successfulSends: successfulSends.length,
-                failedSends: failedSends.length
+                sent: successfulSends > 0,
+                totalTokens: totalTokens,
+                successfulSends: successfulSends,
+                failedSends: failedSends,
+                send_results: sendResults
             };
         } catch (error) {
             console.error('Error completo enviando notificación:', error);
@@ -117,19 +119,34 @@ class NotificationService {
 
             // Crear registro de notificación
             const notification = await Notifications.create({
-                sender_id: null, // Notificación del sistema
+                sender_id: 0,
                 title: payload.title,
                 body: payload.body,
                 data: payload.data,
-                type: payload.type,
+                type: payload.type || 'broadcast',
                 status: 'sent',
                 sent_at: new Date()
             });
 
             // Recopilar todos los tokens
             const allTokens = usuariosApp.flatMap(usuario => 
-                usuario.tokens_notificaciones || []
+                (usuario.tokens_notificaciones || []).filter(token => token && token.trim() !== '')
             );
+
+            // Filtrar tokens únicos
+            const uniqueTokens = [...new Set(allTokens)];
+
+            // Verificar si hay tokens para enviar
+            if (uniqueTokens.length === 0) {
+                return { 
+                    notification,
+                    total_users: 0,
+                    total_tokens: 0,
+                    successful_sends: 0,
+                    failed_sends: 0,
+                    send_results: []
+                };
+            }
 
             // Mensaje de notificación
             const message = {
@@ -137,22 +154,74 @@ class NotificationService {
                     title: payload.title,
                     body: payload.body
                 },
-                data: payload.data
+                data: payload.data || {}
             };
 
             // Enviar notificaciones en lotes
             const batchSize = 500;
-            for (let i = 0; i < allTokens.length; i += batchSize) {
-                const batchTokens = allTokens.slice(i, i + batchSize);
-                await admin.messaging().sendMulticast({
-                    tokens: batchTokens,
-                    ...message
-                });
+            const sendResults = [];
+
+            for (let i = 0; i < uniqueTokens.length; i += batchSize) {
+                const batchTokens = uniqueTokens.slice(i, i + batchSize);
+                
+                try {
+                    // Usar sendEachFor para tokens individuales
+                    const batchPromises = batchTokens.map(token => 
+                        messaging.send({ 
+                            token, 
+                            ...message 
+                        }).catch(error => {
+                            console.error(`Error enviando a token ${token}:`, error);
+                            return null;
+                        })
+                    );
+
+                    const batchResponses = await Promise.all(batchPromises);
+
+                    const successCount = batchResponses.filter(response => response !== null).length;
+                    const failureCount = batchResponses.filter(response => response === null).length;
+
+                    sendResults.push({
+                        totalTokens: batchTokens.length,
+                        successCount,
+                        failureCount
+                    });
+                } catch (batchError) {
+                    console.error(`Error en lote de notificaciones:`, batchError);
+                    sendResults.push({
+                        totalTokens: batchTokens.length,
+                        successCount: 0,
+                        failureCount: batchTokens.length,
+                        error: batchError.message
+                    });
+                }
             }
 
+            // Crear registros de destinatarios
+            const recipientBatches = [];
+            for (const usuario of usuariosApp) {
+                recipientBatches.push(
+                    NotificationRecipients.create({
+                        notification_id: notification.id,
+                        recipient_id: usuario.id,
+                        status: 'pending'
+                    })
+                );
+            }
+            await Promise.all(recipientBatches);
+
+            // Calcular estadísticas
+            const totalTokens = uniqueTokens.length;
+            const successfulSends = sendResults.reduce((sum, result) => sum + result.successCount, 0);
+            const failedSends = sendResults.reduce((sum, result) => sum + result.failureCount, 0);
+
             return { 
+                notification,
                 total_users: usuariosApp.length,
-                notifications_created: 1
+                total_tokens: totalTokens,
+                successful_sends: successfulSends,
+                failed_sends: failedSends,
+                send_results: sendResults
             };
         } catch (error) {
             console.error('Error en notificación broadcast:', error);
@@ -203,7 +272,7 @@ class NotificationService {
                 }));
 
                 return Promise.all(
-                    messages.map(message => admin.messaging().send(message))
+                    messages.map(message => messaging.send(message))
                 );
             });
 
